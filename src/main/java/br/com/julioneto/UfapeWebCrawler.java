@@ -1,4 +1,4 @@
-package br.com.julioneto.main;
+package br.com.julioneto;
 
 import br.com.julioneto.models.Grafo;
 import br.com.julioneto.models.Link;
