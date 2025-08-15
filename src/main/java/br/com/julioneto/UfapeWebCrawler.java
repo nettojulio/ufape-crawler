@@ -1,7 +1,20 @@
-package br.com.julioneto;
+package br.com.julioneto.main;
+
+import br.com.julioneto.models.Grafo;
+import br.com.julioneto.models.Link;
+import br.com.julioneto.service.WebScraperService;
 
 public class UfapeWebCrawler {
     public static void main(String[] args) {
-        System.out.println("Starting Ufape Web Crawler...");
+        Grafo grafo = new Grafo();
+        WebScraperService scraper = new WebScraperService(grafo);
+
+        String urlInicial = "https://ufape.edu.br";
+        scraper.iniciarCrawl(urlInicial);
+
+        System.out.println("\n--- Relatório Final ---");
+        for (Link link : grafo.getLinks().values()) {
+            System.out.println("URL: " + link.getUrl() + ", Status: " + link.getStatusCode());
+        }
     }
 }
