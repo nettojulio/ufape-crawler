@@ -18,18 +18,15 @@ public class WebScraperService {
     private Grafo grafo;
     private Queue<Link> filaDeLinks;
     private Set<String> linksVisitados;
-    private String dominioInicial;
 
     public WebScraperService(Grafo grafo) {
         this.grafo = grafo;
         this.filaDeLinks = new LinkedList<>();
         this.linksVisitados = new HashSet<>();
-        this.dominioInicial = "";
     }
 
     public void iniciarCrawl(String urlInicial) {
         Link linkInicial = new Link(urlInicial);
-        this.dominioInicial = linkInicial.getDomain(); // armazena o domínio inicial (UFAPE) pra limitar busca
         filaDeLinks.add(linkInicial);
         linksVisitados.add(urlInicial);
         grafo.adicionarLink(linkInicial);
@@ -90,8 +87,8 @@ public class WebScraperService {
                 String tipoAresta = el.attr("rel").contains("nofollow") ? "nofollow" : "dofollow";
                 grafo.adicionarAresta(link.getUrl(), urlEncontrada, el.text(), tipoAresta);
 
-                //mete o link na fila para ser visitado se for do mesmo dominio inicial e ainda não foi visitado
-                if (urlEncontrada.startsWith(this.dominioInicial) && !linksVisitados.contains(urlEncontrada)) {
+                //mete o link na fila para ser visitado se ainda não foi
+                if (!linksVisitados.contains(urlEncontrada)) {
                     filaDeLinks.add(linkDestino);
                     linksVisitados.add(urlEncontrada);
                 }
