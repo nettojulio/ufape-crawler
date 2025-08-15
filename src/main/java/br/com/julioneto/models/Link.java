@@ -1,5 +1,7 @@
 package br.com.julioneto.models;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -15,6 +17,7 @@ public class Link {
 
     public Link(String url) {
         this.url = url;
+        this.domain = extrairDominio(url);
         this.arestasDeSaida = new HashSet<>();
     }
 
@@ -73,6 +76,16 @@ public class Link {
 
     public void adicionarAresta(Aresta aresta) {
         this.arestasDeSaida.add(aresta);
+    }
+
+    private String extrairDominio(String url){
+        try {
+            URI uri = new URI(url);
+            // vai retornar uma String formatada "protocolo://dominio"
+            return uri.getScheme() + "://" + uri.getHost(); //dominio base
+        } catch (URISyntaxException e) {
+            return "";
+        }
     }
 
     // Métodos para manipulação de objetos

@@ -1,7 +1,9 @@
 package br.com.julioneto.models;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Grafo {
     private Map<String, Link> links;
@@ -27,6 +29,12 @@ public class Grafo {
             Aresta aresta = new Aresta(origem, destino, textoDoLink, tipo);
             origem.adicionarAresta(aresta);
         }
+    }
+
+    public List<Link> getLinksQuebrados() {
+        return this.links.values().stream()
+                .filter(link -> link.getStatusCode() >= 400 && link.getStatusCode() < 600)
+                .collect(Collectors.toList());
     }
 
     // Getters e Setters
