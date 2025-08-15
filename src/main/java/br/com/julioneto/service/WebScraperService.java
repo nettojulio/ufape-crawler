@@ -9,27 +9,39 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
 
 public class WebScraperService {
     private Grafo grafo;
     private Queue<Link> filaDeLinks;
     private Set<String> linksVisitados;
-    private String dominioInicial;
+    private String hostInicial;
+    private static final Set<String> EXTENSOES_PADRAO_IGNORADAS = Set.of(
+            ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".zip", ".rar",
+            ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+            ".mp3", ".mp4"
+    );
+    // para que cada instancia tenha sua propria lista de links ignorados
+    private final Set<String> extensoesIgnoradas;
 
     public WebScraperService(Grafo grafo) {
         this.grafo = grafo;
         this.filaDeLinks = new LinkedList<>();
         this.linksVisitados = new HashSet<>();
-        this.dominioInicial = "";
+        this.hostInicial = "";
+        this.extensoesIgnoradas = new HashSet<>();
     }
 
     public void iniciarCrawl(String urlInicial) {
         Link linkInicial = new Link(urlInicial);
-        this.dominioInicial = linkInicial.getDomain(); // armazena o domínio inicial (UFAPE) pra limitar busca
+        try{
+            this.hostInicial = new URI(urlInicial).getHost();
+        } catch (URISyntaxException e) {
+            System.err.println("URL inicial inválida: " + urlInicial);
+            return;
+        }
         filaDeLinks.add(linkInicial);
         linksVisitados.add(urlInicial);
         grafo.adicionarLink(linkInicial);
@@ -91,11 +103,31 @@ public class WebScraperService {
                 grafo.adicionarAresta(link.getUrl(), urlEncontrada, el.text(), tipoAresta);
 
                 //mete o link na fila para ser visitado se for do mesmo dominio inicial e ainda não foi visitado
-                if (urlEncontrada.startsWith(this.dominioInicial) && !linksVisitados.contains(urlEncontrada)) {
+                if (deveVisitar(urlEncontrada)) {
                     filaDeLinks.add(linkDestino);
                     linksVisitados.add(urlEncontrada);
                 }
             }
         }
     }
+
+    private boolean deveVisitar(String url){
+        //filtro para não visitar link já visitado
+        if(linksVisitados.contains(url)){
+            return false;
+        }
+        //não entrar em link com extensões de arquivo ignorados
+        String urlMinuscula = url.toLowerCase();
+        if(extensoesIgnoradas.stream().anyMatch(urlMinuscula::endsWith)){
+            return false;
+        }
+        //visitar apenas os link do mesmo host inicial, ignorando http/https
+        try{
+            String hostEncontrado = new URI(url).getHost();
+            return hostEncontrado.equals(this.hostInicial);
+        } catch (URISyntaxException e){
+            return false;
+        }
+    }
+
 }
