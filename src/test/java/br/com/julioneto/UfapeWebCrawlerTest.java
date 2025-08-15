@@ -6,6 +6,6 @@ import org.junit.jupiter.api.Test;
 class UfapeWebCrawlerTest {
     @Test
     void exampleTest() {
-        Assertions.assertEquals(2, 1+1);
+        Assertions.assertEquals(2, 1 + 1);
     }
 }
