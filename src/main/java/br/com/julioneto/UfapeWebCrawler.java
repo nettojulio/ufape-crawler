@@ -12,7 +12,7 @@ public class UfapeWebCrawler {
         Grafo grafo = new Grafo();
         WebScraperService scraper = new WebScraperService(grafo);
 
-        String urlInicial = "https://gestaohvu.ufape.edu.br/";
+        String urlInicial = "https://ufape.edu.br/";
         scraper.iniciarCrawl(urlInicial);
 
         System.out.println("\n--- Relatório Final ---");

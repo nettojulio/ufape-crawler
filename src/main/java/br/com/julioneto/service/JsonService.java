@@ -23,6 +23,7 @@ public class JsonService {
             JSONObject jsonLink = new JSONObject();
 
             //adiciona as propriedades do Link ao JSON
+            jsonLink.put("depth", link.getDepth());
             jsonLink.put("url", link.getUrl());
             jsonLink.put("statusCode", link.getStatusCode());
             jsonLink.put("Content_type", link.getContentType());
