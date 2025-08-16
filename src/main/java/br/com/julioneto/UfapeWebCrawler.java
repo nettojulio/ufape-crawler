@@ -12,7 +12,7 @@ public class UfapeWebCrawler {
         Grafo grafo = new Grafo();
         WebScraperService scraper = new WebScraperService(grafo);
 
-        String urlInicial = "https://ufape.edu.br";
+        String urlInicial = "https://gestaohvu.ufape.edu.br/";
         scraper.iniciarCrawl(urlInicial);
 
         System.out.println("\n--- Relatório Final ---");
@@ -33,6 +33,6 @@ public class UfapeWebCrawler {
 
 
         JsonService jsonService = new JsonService();
-        jsonService.salvarGrafoComoJson(grafo, "C:\\Users\\pedro\\OneDrive\\Documentos\\AED");
+        jsonService.salvarGrafoComoJson(grafo, "grafo_salvo.json");
     }
 }
