@@ -131,8 +131,17 @@ public class WebScraperService {
         //visitar apenas os link do mesmo host inicial, ignorando http/https
         try{
             String hostEncontrado = new URI(url).getHost();
+            if (hostEncontrado == null) {
+                // TODO ajustar isso que ta feio
+                System.err.println("URL " + url + " veio null");
+                return false;
+            }
             return hostEncontrado.equals(this.hostInicial);
         } catch (URISyntaxException e){
+            return false;
+        } catch (Exception ex) {
+            System.err.println("Global exception" );
+            ex.printStackTrace();
             return false;
         }
     }
