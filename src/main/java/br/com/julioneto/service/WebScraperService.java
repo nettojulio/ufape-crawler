@@ -31,11 +31,13 @@ public class WebScraperService {
         this.filaDeLinks = new LinkedList<>();
         this.linksVisitados = new HashSet<>();
         this.hostInicial = "";
-        this.extensoesIgnoradas = new HashSet<>();
+        this.extensoesIgnoradas = new HashSet<>(EXTENSOES_PADRAO_IGNORADAS);
     }
 
     public void iniciarCrawl(String urlInicial) {
         Link linkInicial = new Link(urlInicial);
+        linkInicial.setDepth(0); //raiz do grafo
+
         try{
             this.hostInicial = new URI(urlInicial).getHost();
         } catch (URISyntaxException e) {
@@ -48,7 +50,8 @@ public class WebScraperService {
 
         while (!filaDeLinks.isEmpty()) {
             Link linkAtual = filaDeLinks.poll();
-            System.out.println("Processando: " + linkAtual.getUrl());
+            //alterei aqui, troquei o processando
+            System.out.println("[Processando:] (depth: "+ linkAtual.getDepth() + ") " + linkAtual.getUrl());
 
             try {
                 processarLink(linkAtual);
@@ -95,6 +98,10 @@ public class WebScraperService {
                 Link linkDestino = grafo.getLink(urlEncontrada);
                 if (linkDestino == null) {
                     linkDestino = new Link(urlEncontrada);
+
+                    //define profundidade com base no pai
+                    linkDestino.setDepth(link.getDepth() + 1);
+
                     grafo.adicionarLink(linkDestino);
                 }
 

@@ -3,6 +3,7 @@ package br.com.julioneto.models;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -14,6 +15,7 @@ public class Link {
     private long responseTime;
     private String title;
     private Set<Aresta> arestasDeSaida;
+    private int depth;
 
     public Link(String url) {
         this.url = url;
@@ -74,8 +76,21 @@ public class Link {
         return arestasDeSaida;
     }
 
+    public int getDepth(){
+        return depth;
+    }
+
+    public void setDepth(int depth){
+        this.depth = depth;
+    }
+
     public void adicionarAresta(Aresta aresta) {
         this.arestasDeSaida.add(aresta);
+    }
+
+    //metodo auxiliar que retorna URL dos sublink da pagina
+    public List<String> getSublinks(){
+        return arestasDeSaida.stream().map(aresta -> aresta.getDestino().getUrl()).toList();
     }
 
     private String extrairDominio(String url){
@@ -93,8 +108,10 @@ public class Link {
     public String toString() {
         return "Link{" +
                 "url='" + url + '\'' +
+                ", depth=" + depth +
                 ", statusCode=" + statusCode +
                 ", contentType='" + contentType + '\'' +
+                ", sublinks="+ getSublinks()+
                 '}';
     }
 
