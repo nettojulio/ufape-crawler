@@ -23,7 +23,6 @@ public class JsonService {
             JSONObject jsonLink = new JSONObject();
 
             //adiciona as propriedades do Link ao JSON
-            jsonLink.put("depth", link.getDepth());
             jsonLink.put("url", link.getUrl());
             jsonLink.put("statusCode", link.getStatusCode());
             jsonLink.put("Content_type", link.getContentType());
@@ -45,9 +44,9 @@ public class JsonService {
             // Adiciona o objeto JSON do link ao objeto principal de nós, usando a URL como chave
             jsonNodes.put(link.getUrl(), jsonLink);
         }
-        jsonGrafo.put("nodes", jsonNodes);
+            jsonGrafo.put("nodes", jsonNodes);
 
-        return jsonGrafo;
+            return jsonGrafo;
 
     }
 
