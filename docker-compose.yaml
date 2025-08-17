@@ -1,0 +1,35 @@
+services:
+  ufape-crawler-golang:
+    container_name: ufape-crawler-golang
+    image: nettojulio/ufape-crawler-golang:latest
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    networks:
+      - app-private-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  postgres-database:
+    container_name: postgres-database
+    image: postgres:17.5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./migration/docker-database-initial.sql:/docker-entrypoint-initdb.d/docker-database-initial.sql
+    restart: on-failure
+    networks:
+      - app-private-network
+
+networks:
+  app-private-network:
+    driver: bridge
+    name: app-private-network

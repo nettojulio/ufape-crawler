@@ -11,7 +11,10 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 
 public class WebScraperService {
     private Grafo grafo;
@@ -36,9 +39,9 @@ public class WebScraperService {
 
     public void iniciarCrawl(String urlInicial) {
         Link linkInicial = new Link(urlInicial);
-        linkInicial.setDepth(0); //raiz do grafo
+        linkInicial.setDepth(1); //raiz do grafo
 
-        try{
+        try {
             this.hostInicial = new URI(urlInicial).getHost();
         } catch (URISyntaxException e) {
             System.err.println("URL inicial inválida: " + urlInicial);
@@ -51,7 +54,7 @@ public class WebScraperService {
         while (!filaDeLinks.isEmpty()) {
             Link linkAtual = filaDeLinks.poll();
             //alterei aqui, troquei o processando
-            System.out.println("[Processando:] (depth: "+ linkAtual.getDepth() + ") " + linkAtual.getUrl());
+            System.out.println("[Processando:] (depth: " + linkAtual.getDepth() + ") " + linkAtual.getUrl());
 
             try {
                 processarLink(linkAtual);
@@ -118,18 +121,18 @@ public class WebScraperService {
         }
     }
 
-    private boolean deveVisitar(String url){
+    private boolean deveVisitar(String url) {
         //filtro para não visitar link já visitado
-        if(linksVisitados.contains(url)){
+        if (linksVisitados.contains(url)) {
             return false;
         }
         //não entrar em link com extensões de arquivo ignorados
         String urlMinuscula = url.toLowerCase();
-        if(extensoesIgnoradas.stream().anyMatch(urlMinuscula::endsWith)){
+        if (extensoesIgnoradas.stream().anyMatch(urlMinuscula::endsWith)) {
             return false;
         }
         //visitar apenas os link do mesmo host inicial, ignorando http/https
-        try{
+        try {
             String hostEncontrado = new URI(url).getHost();
             if (hostEncontrado == null) {
                 // TODO ajustar isso que ta feio
@@ -137,10 +140,10 @@ public class WebScraperService {
                 return false;
             }
             return hostEncontrado.equals(this.hostInicial);
-        } catch (URISyntaxException e){
+        } catch (URISyntaxException e) {
             return false;
         } catch (Exception ex) {
-            System.err.println("Global exception" );
+            System.err.println("Global exception");
             ex.printStackTrace();
             return false;
         }

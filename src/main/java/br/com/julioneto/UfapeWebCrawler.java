@@ -19,17 +19,17 @@ public class UfapeWebCrawler {
         for (Link link : grafo.getLinks().values()) {
             System.out.println("URL: " + link.getUrl() + ", Status: " + link.getStatusCode());
         }
-            System.out.println("Total de paginas visitadas: " + grafo.getLinks().size());
+        System.out.println("Total de paginas visitadas: " + grafo.getLinks().size());
 
-            List<Link> linksQuebrados = grafo.getLinksQuebrados();
-            if (!linksQuebrados.isEmpty()) {
-                System.out.println("\n--- Links Quebrados (" + linksQuebrados.size() + ") ---");
-                for (Link links : linksQuebrados) {
-                    System.out.println("URL: " + links.getUrl() + ", Status: " + links.getStatusCode());
-                }
-            } else {
-                System.out.println("\nNenhum link quebrado encontrado.");
+        List<Link> linksQuebrados = grafo.getLinksQuebrados();
+        if (!linksQuebrados.isEmpty()) {
+            System.out.println("\n--- Links Quebrados (" + linksQuebrados.size() + ") ---");
+            for (Link links : linksQuebrados) {
+                System.out.println("URL: " + links.getUrl() + ", Status: " + links.getStatusCode());
             }
+        } else {
+            System.out.println("\nNenhum link quebrado encontrado.");
+        }
 
 
         JsonService jsonService = new JsonService();
