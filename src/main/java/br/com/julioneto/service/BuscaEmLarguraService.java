@@ -49,7 +49,6 @@ public class BuscaEmLarguraService {
         //aqui eh o loop principal do algoritmo
         while (!filaDeLinks.isEmpty()) {
             Link linkAtual = filaDeLinks.poll();
-            System.out.println("[Processando:] (depth: " + linkAtual.getDepth() + ") " + linkAtual.getUrl() + linkAtual.getStatusCode());
 
             try {
                 processarLink(linkAtual);
@@ -71,6 +70,12 @@ public class BuscaEmLarguraService {
         linkAtual.setStatusCode(response.getStatusCode());
         linkAtual.setTitle(response.getTitle());
         linkAtual.setContentType(response.getContentType());
+
+        System.out.println(
+                "[Processado:] (depth: " + linkAtual.getDepth() +
+                        ") " + linkAtual.getUrl() +
+                        " - Status: " + linkAtual.getStatusCode()
+        );
 
         try {
             //removemos o "ms" e outros caracteres do responseTime e faz a correcao para long
