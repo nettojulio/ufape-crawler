@@ -49,7 +49,7 @@ public class BuscaEmLarguraService {
         //aqui eh o loop principal do algoritmo
         while (!filaDeLinks.isEmpty()) {
             Link linkAtual = filaDeLinks.poll();
-            System.out.println("[Processando:] (depth: " + linkAtual.getDepth() + ") " + linkAtual.getUrl());
+            System.out.println("[Processando:] (depth: " + linkAtual.getDepth() + ") " + linkAtual.getUrl() + linkAtual.getStatusCode());
 
             try {
                 processarLink(linkAtual);
