@@ -1,19 +1,24 @@
-package br.com.julioneto.models;
+package br.com.julioneto.domain;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Estrutura de dados que armazena todos os links e suas conexões.
+ *
+ * @author Julio Neto
+ * @version 0.0.1
+ * @since 0.0.1
+ */
 public class Grafo {
-    private Map<String, Link> links;
-
-    public Grafo() {
-        this.links = new HashMap<>();
-    }
+    /**
+     * TODO Implementar threads ou mudar Estrutura de dados
+     */
+    private final Map<String, Link> links = new ConcurrentHashMap<>();
 
     public void adicionarLink(Link link) {
-        //putIfAbsent() vai fazer com que nao entrem links duplicados no grafo
         links.putIfAbsent(link.getUrl(), link);
     }
 
@@ -21,12 +26,12 @@ public class Grafo {
         return links.get(url);
     }
 
-    public void adicionarAresta(String urlOrigem, String urlDestino, String textoDoLink, String tipo) {
+    public void adicionarAresta(String urlOrigem, String urlDestino, String tipo) {
         Link origem = getLink(urlOrigem);
         Link destino = getLink(urlDestino);
 
         if (origem != null && destino != null) {
-            Aresta aresta = new Aresta(origem, destino, textoDoLink, tipo);
+            Aresta aresta = new Aresta(origem, destino, tipo);
             origem.adicionarAresta(aresta);
         }
     }
@@ -37,12 +42,7 @@ public class Grafo {
                 .collect(Collectors.toList());
     }
 
-    // Getters e Setters
     public Map<String, Link> getLinks() {
         return links;
-    }
-
-    public void setLinks(Map<String, Link> links) {
-        this.links = links;
     }
 }
