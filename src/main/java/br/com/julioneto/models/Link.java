@@ -76,11 +76,11 @@ public class Link {
         return arestasDeSaida;
     }
 
-    public int getDepth(){
+    public int getDepth() {
         return depth;
     }
 
-    public void setDepth(int depth){
+    public void setDepth(int depth) {
         this.depth = depth;
     }
 
@@ -89,16 +89,16 @@ public class Link {
     }
 
     //metodo auxiliar que retorna URL dos sublink da pagina
-    public List<String> getSublinks(){
+    public List<String> getSublinks() {
         return arestasDeSaida.stream().map(aresta -> aresta.getDestino().getUrl()).toList();
     }
 
-    private String extrairDominio(String url){
+    private String extrairDominio(String url) {
         try {
             URI uri = new URI(url);
             // vai retornar uma String formatada "protocolo://dominio"
             return uri.getScheme() + "://" + uri.getHost(); //dominio base
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException error) {
             return "";
         }
     }
@@ -111,7 +111,7 @@ public class Link {
                 ", depth=" + depth +
                 ", statusCode=" + statusCode +
                 ", contentType='" + contentType + '\'' +
-                ", sublinks="+ getSublinks()+
+                ", sublinks=" + getSublinks() +
                 '}';
     }
 

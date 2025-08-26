@@ -2,8 +2,8 @@ package br.com.julioneto;
 
 import br.com.julioneto.models.Grafo;
 import br.com.julioneto.models.Link;
-import br.com.julioneto.service.JsonService;
 import br.com.julioneto.service.BuscaEmLarguraService;
+import br.com.julioneto.service.JsonService;
 
 import java.util.List;
 

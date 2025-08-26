@@ -18,7 +18,7 @@ public class JsonService {
         JSONObject jsonNodes = new JSONObject();
 
         //itera sobre cada link dos grafos
-        for(Map.Entry<String, Link>  entry : grafo.getLinks().entrySet()) {
+        for (Map.Entry<String, Link> entry : grafo.getLinks().entrySet()) {
             Link link = entry.getValue();
             JSONObject jsonLink = new JSONObject();
 
@@ -44,16 +44,16 @@ public class JsonService {
             // Adiciona o objeto JSON do link ao objeto principal de nós, usando a URL como chave
             jsonNodes.put(link.getUrl(), jsonLink);
         }
-            jsonGrafo.put("nodes", jsonNodes);
+        jsonGrafo.put("nodes", jsonNodes);
 
-            return jsonGrafo;
+        return jsonGrafo;
 
     }
 
-    public void salvarGrafoComoJson(Grafo grafo, String caminhoArquivo){
+    public void salvarGrafoComoJson(Grafo grafo, String caminhoArquivo) {
         JSONObject jsonGrafo = converterGrafoParaJson(grafo);
 
-        try(FileWriter file = new FileWriter(caminhoArquivo)){
+        try (FileWriter file = new FileWriter(caminhoArquivo)) {
             file.write(jsonGrafo.toString(4));
             System.out.println("Grafo salvo com sucesso em: " + caminhoArquivo);
         } catch (IOException e) {
