@@ -12,7 +12,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -21,12 +25,13 @@ import java.util.concurrent.TimeUnit;
  * @author Julio Neto
  * @version 0.0.1
  * @since 0.0.1
- * */
+ *
+ */
 public class BfsWebCrawler implements WebCrawler {
     private final Grafo grafo;
     private final CrawlerClient crawlerClient;
-    private final Queue<Link> queue = new LinkedList<>();
-    private final Set<String> visitedUrls = new HashSet<>();
+    private final Queue<Link> sequentialQueue = new LinkedList<>();
+    private final Set<String> sequentialVisitedUrls = new HashSet<>();
     private String initialHost;
 
     public BfsWebCrawler(Grafo grafo, CrawlerClient crawlerClient) {
@@ -34,46 +39,90 @@ public class BfsWebCrawler implements WebCrawler {
         this.crawlerClient = crawlerClient;
     }
 
+    /**
+     * Implementação original, que executa a varredura de forma sequencial,
+     * processando um link de cada vez.
+     */
     @Override
     public void crawl(String startUrl) {
-        try {
-            this.initialHost = new URI(startUrl).getHost();
-            if (this.initialHost == null) {
-                System.err.println("URL inicial inválida: não foi possível extrair o host.");
-                return;
-            }
-        } catch (URISyntaxException e) {
-            System.err.println("Erro de sintaxe na URL inicial: " + e.getMessage());
-            return;
-        }
+        if (!initialize(startUrl)) return;
 
         Link startLink = new Link(startUrl);
         startLink.setDepth(1);
 
-        queue.add(startLink);
-        visitedUrls.add(startUrl);
+        sequentialQueue.add(startLink);
+        sequentialVisitedUrls.add(startUrl);
         grafo.adicionarLink(startLink);
 
-        boolean stopIt = false;
-        while (!queue.isEmpty() && !stopIt) {
-            Link currentLink = queue.poll();
-            processLink(currentLink);
+        while (!sequentialQueue.isEmpty()) {
+            Link currentLink = sequentialQueue.poll();
+            processLinkSequentially(currentLink);
         }
     }
 
-    private void processLink(Link currentLink) {
-        try {
-            System.out.println(
-                    "[Processando] (depth: " + currentLink.getDepth() + ") " + currentLink.getUrl()
-            );
+    /**
+     * Cada link a ser processado é submetido como uma nova tarefa para um Executor,
+     * que por sua vez cria uma nova virtual thread para executá-la.
+     */
+    @Override
+    public void crawlConcurrently(String startUrl) {
+        if (!initialize(startUrl)) return;
 
+        final Set<String> concurrentVisitedUrls = ConcurrentHashMap.newKeySet();
+        final AtomicInteger activeTasks = new AtomicInteger(0);
+
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            Link startLink = new Link(startUrl);
+            startLink.setDepth(1);
+
+            grafo.adicionarLink(startLink);
+            concurrentVisitedUrls.add(startUrl);
+
+            activeTasks.incrementAndGet();
+            executor.submit(() -> processLinkConcurrently(startLink, executor, concurrentVisitedUrls, activeTasks));
+
+            while (activeTasks.get() > 0) {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+
+            executor.shutdown();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("O processo de crawling concorrente foi interrompido.");
+        }
+    }
+
+    private boolean initialize(String startUrl) {
+        try {
+            this.initialHost = new URI(startUrl).getHost();
+            if (this.initialHost == null) {
+                System.err.println("URL inicial inválida: não foi possível extrair o host.");
+                return false;
+            }
+        } catch (URISyntaxException e) {
+            System.err.println("Erro de sintaxe na URL inicial: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    private void processLinkSequentially(Link currentLink) {
+        System.out.println("[SEQ] Processando (depth: " + currentLink.getDepth() + ") " + currentLink.getUrl());
+        try {
             CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
             updateLinkData(currentLink, response);
 
             if (response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
                 for (String foundUrl : response.getLinks().getAvailable()) {
-                    if (shouldVisit(foundUrl)) {
-                        visitedUrls.add(foundUrl);
+                    if (shouldVisit(foundUrl, sequentialVisitedUrls)) {
+                        sequentialVisitedUrls.add(foundUrl);
 
                         Link destinationLink = new Link(foundUrl);
                         destinationLink.setDepth(currentLink.getDepth() + 1);
@@ -81,15 +130,56 @@ public class BfsWebCrawler implements WebCrawler {
                         grafo.adicionarLink(destinationLink);
                         grafo.adicionarAresta(currentLink.getUrl(), destinationLink.getUrl(), "dofollow");
 
-                        queue.add(destinationLink);
+                        sequentialQueue.add(destinationLink);
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("Erro ao processar a URL " + currentLink.getUrl() + ": " + e.getMessage());
-            if (currentLink.getStatusCode() == 0) {
-                currentLink.setStatusCode(500);
+            handleProcessingError(currentLink, e);
+        }
+    }
+
+    private void processLinkConcurrently(Link currentLink, ExecutorService executor, Set<String> visitedUrls, AtomicInteger activeTasks) {
+        System.out.println("[CON] Processando (depth: " + currentLink.getDepth() + ") " + currentLink.getUrl());
+        if (currentLink.getDepth() > Grafo.getMaxDepth()) {
+            Grafo.setMaxDepth(currentLink.getDepth());
+        }
+        try {
+            CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
+            updateLinkData(currentLink, response);
+
+            if (response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
+                for (String foundUrl : response.getLinks().getAvailable()) {
+                    if (shouldVisit(foundUrl, visitedUrls) && visitedUrls.add(foundUrl)) {
+                        Link destinationLink = new Link(foundUrl);
+                        destinationLink.setDepth(currentLink.getDepth() + 1);
+
+                        grafo.adicionarLink(destinationLink);
+                        grafo.adicionarAresta(currentLink.getUrl(), destinationLink.getUrl(), "dofollow");
+
+                        activeTasks.incrementAndGet();
+                        executor.submit(() -> processLinkConcurrently(destinationLink, executor, visitedUrls, activeTasks));
+                    }
+                }
             }
+        } catch (Exception e) {
+            handleProcessingError(currentLink, e);
+        } finally {
+            activeTasks.decrementAndGet();
+        }
+    }
+
+    private boolean shouldVisit(String url, Set<String> visited) {
+        if (url == null || url.isBlank() || !url.startsWith("http") || visited.contains(url)) {
+            return false;
+        }
+
+        try {
+            String foundHost = new URI(url).getHost();
+            return foundHost.contains(initialHost);
+        } catch (URISyntaxException e) {
+            System.err.println("URL inválida encontrada durante verificação: " + url);
+            return false;
         }
     }
 
@@ -107,17 +197,10 @@ public class BfsWebCrawler implements WebCrawler {
         }
     }
 
-    private boolean shouldVisit(String url) {
-        if (url == null || url.isBlank() || !url.startsWith("http") || visitedUrls.contains(url)) {
-            return false;
-        }
-
-        try {
-            String foundHost = new URI(url).getHost();
-            return initialHost.equals(foundHost);
-        } catch (URISyntaxException e) {
-            System.err.println("URL inválida encontrada durante verificação: " + url);
-            return false;
+    private void handleProcessingError(Link link, Exception e) {
+        System.err.println("Erro ao processar a URL " + link.getUrl() + ": " + e.getMessage());
+        if (link.getStatusCode() == 0) {
+            link.setStatusCode(500);
         }
     }
 }

@@ -21,7 +21,8 @@ import java.time.Duration;
  * @author Julio Neto
  * @version 0.0.1
  * @since 0.0.1
- * */
+ *
+ */
 public class ExternalApiCrawlerClient implements CrawlerClient {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -31,7 +32,7 @@ public class ExternalApiCrawlerClient implements CrawlerClient {
         this.baseUrl = baseUrl;
         this.httpClient = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
-                .connectTimeout(Duration.ofSeconds(10))
+                .connectTimeout(Duration.ofSeconds(30))
                 .build();
         this.objectMapper = new ObjectMapper();
     }

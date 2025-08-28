@@ -13,10 +13,19 @@ import java.util.stream.Collectors;
  * @since 0.0.1
  */
 public class Grafo {
+    private static int MAX_DEPTH = 0;
     /**
      * TODO Implementar threads ou mudar Estrutura de dados
      */
     private final Map<String, Link> links = new ConcurrentHashMap<>();
+
+    public static int getMaxDepth() {
+        return MAX_DEPTH;
+    }
+
+    public static void setMaxDepth(int maxDepth) {
+        MAX_DEPTH = maxDepth;
+    }
 
     public void adicionarLink(Link link) {
         links.putIfAbsent(link.getUrl(), link);
@@ -40,6 +49,12 @@ public class Grafo {
         return this.links.values().stream()
                 .filter(link -> link.getStatusCode() >= 400 && link.getStatusCode() < 600)
                 .collect(Collectors.toList());
+    }
+
+    public Map<Integer, List<Link>> getLinksQuebradosPorStatusCode() {
+        return this.links.values().stream()
+                .filter(link -> link.getStatusCode() != 200)
+                .collect(Collectors.groupingBy(Link::getStatusCode));
     }
 
     public Map<String, Link> getLinks() {
