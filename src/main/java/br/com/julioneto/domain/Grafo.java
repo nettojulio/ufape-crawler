@@ -1,5 +1,7 @@
 package br.com.julioneto.domain;
 
+import br.com.julioneto.config.CrawlerConfig;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,9 +16,7 @@ import java.util.stream.Collectors;
  */
 public class Grafo {
     private static int MAX_DEPTH = 0;
-    /**
-     * TODO Implementar threads ou mudar Estrutura de dados
-     */
+    private final String approach = CrawlerConfig.USE_THREADS ? "concurrent" : "sequential";
     private final Map<String, Link> links = new ConcurrentHashMap<>();
 
     public static int getMaxDepth() {
@@ -48,7 +48,7 @@ public class Grafo {
     public List<Link> getLinksQuebrados() {
         return this.links.values().stream()
                 .filter(link -> link.getStatusCode() >= 400 && link.getStatusCode() < 600)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Map<Integer, List<Link>> getLinksQuebradosPorStatusCode() {
@@ -59,5 +59,9 @@ public class Grafo {
 
     public Map<String, Link> getLinks() {
         return links;
+    }
+
+    public String getApproach() {
+        return approach;
     }
 }

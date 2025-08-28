@@ -1,5 +1,6 @@
 package br.com.julioneto.service;
 
+import br.com.julioneto.config.CrawlerConfig;
 import br.com.julioneto.contract.CrawlerClient;
 import br.com.julioneto.contract.WebCrawler;
 import br.com.julioneto.domain.Grafo;
@@ -56,6 +57,9 @@ public class BfsWebCrawler implements WebCrawler {
 
         while (!sequentialQueue.isEmpty()) {
             Link currentLink = sequentialQueue.poll();
+            if (currentLink.getDepth() > CrawlerConfig.MAX_DEPTH) {
+                break;
+            }
             processLinkSequentially(currentLink);
         }
     }
@@ -84,7 +88,7 @@ public class BfsWebCrawler implements WebCrawler {
             while (activeTasks.get() > 0) {
                 try {
                     Thread.sleep(2000);
-                } catch (InterruptedException e) {
+                } catch (InterruptedException _) {
                     Thread.currentThread().interrupt();
                     break;
                 }
@@ -93,7 +97,7 @@ public class BfsWebCrawler implements WebCrawler {
             executor.shutdown();
             executor.awaitTermination(5, TimeUnit.SECONDS);
 
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             System.err.println("O processo de crawling concorrente foi interrompido.");
         }
@@ -115,13 +119,17 @@ public class BfsWebCrawler implements WebCrawler {
 
     private void processLinkSequentially(Link currentLink) {
         System.out.println("[SEQ] Processando (depth: " + currentLink.getDepth() + ") " + currentLink.getUrl());
+        if (currentLink.getDepth() > Grafo.getMaxDepth()) {
+            Grafo.setMaxDepth(currentLink.getDepth());
+        }
         try {
             CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
             updateLinkData(currentLink, response);
 
-            if (response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
+            if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
                 for (String foundUrl : response.getLinks().getAvailable()) {
                     if (shouldVisit(foundUrl, sequentialVisitedUrls)) {
+                        // TODO review approach
                         sequentialVisitedUrls.add(foundUrl);
 
                         Link destinationLink = new Link(foundUrl);
@@ -134,8 +142,8 @@ public class BfsWebCrawler implements WebCrawler {
                     }
                 }
             }
-        } catch (Exception e) {
-            handleProcessingError(currentLink, e);
+        } catch (Exception error) {
+            handleProcessingError(currentLink, error);
         }
     }
 
@@ -148,7 +156,7 @@ public class BfsWebCrawler implements WebCrawler {
             CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
             updateLinkData(currentLink, response);
 
-            if (response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
+            if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
                 for (String foundUrl : response.getLinks().getAvailable()) {
                     if (shouldVisit(foundUrl, visitedUrls) && visitedUrls.add(foundUrl)) {
                         Link destinationLink = new Link(foundUrl);
@@ -177,7 +185,7 @@ public class BfsWebCrawler implements WebCrawler {
         try {
             String foundHost = new URI(url).getHost();
             return foundHost.contains(initialHost);
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException _) {
             System.err.println("URL inválida encontrada durante verificação: " + url);
             return false;
         }
@@ -192,7 +200,7 @@ public class BfsWebCrawler implements WebCrawler {
             String timeStr = response.getElapsedTime().replaceAll("[^\\d.]", "");
             double timeInSeconds = Double.parseDouble(timeStr);
             link.setResponseTime(TimeUnit.MILLISECONDS.convert((long) (timeInSeconds * 1000), TimeUnit.MILLISECONDS));
-        } catch (NumberFormatException | NullPointerException e) {
+        } catch (NumberFormatException | NullPointerException _) {
             link.setResponseTime(0L);
         }
     }
