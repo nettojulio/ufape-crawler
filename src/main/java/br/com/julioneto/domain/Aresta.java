@@ -19,9 +19,6 @@ public class Aresta {
     private Link destino;
     private String tipo;
 
-    public Aresta() {
-    }
-
     public Aresta(Link origem, Link destino, String tipo) {
         this.origem = origem;
         this.destino = destino;

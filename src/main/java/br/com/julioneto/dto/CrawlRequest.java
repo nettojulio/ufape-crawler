@@ -30,12 +30,20 @@ public class CrawlRequest {
     @JsonProperty("lower_case_urls")
     private boolean lowerCaseUrls;
 
-    public CrawlRequest(String url, int timeout, boolean removeFragment, List<String> allowedDomains, boolean collectSubdomains, boolean lowerCaseUrls) {
+    @JsonProperty("can_retry")
+    private boolean canRetry;
+
+    @JsonProperty("max_attempts")
+    private int maxAttempts;
+
+    public CrawlRequest(String url, int timeout, boolean removeFragment, List<String> allowedDomains, boolean collectSubdomains, boolean lowerCaseUrls, boolean canRetry, int maxAttempts) {
         this.url = url;
         this.timeout = timeout;
         this.removeFragment = removeFragment;
         this.allowedDomains = allowedDomains;
         this.collectSubdomains = collectSubdomains;
         this.lowerCaseUrls = lowerCaseUrls;
+        this.canRetry = canRetry;
+        this.maxAttempts = maxAttempts;
     }
 }

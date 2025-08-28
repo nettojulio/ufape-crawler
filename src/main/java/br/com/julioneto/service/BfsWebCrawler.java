@@ -195,14 +195,7 @@ public class BfsWebCrawler implements WebCrawler {
         link.setStatusCode(response.getStatusCode());
         link.setTitle(response.getTitle());
         link.setContentType(response.getContentType());
-
-        try {
-            String timeStr = response.getElapsedTime().replaceAll("[^\\d.]", "");
-            double timeInSeconds = Double.parseDouble(timeStr);
-            link.setResponseTime(TimeUnit.MILLISECONDS.convert((long) (timeInSeconds * 1000), TimeUnit.MILLISECONDS));
-        } catch (NumberFormatException | NullPointerException _) {
-            link.setResponseTime(0L);
-        }
+        link.setResponseTime(response.getElapsedTime());
     }
 
     private void handleProcessingError(Link link, Exception e) {

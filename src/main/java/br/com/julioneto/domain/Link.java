@@ -22,7 +22,7 @@ public class Link {
     private String domain;
     private int statusCode;
     private String contentType;
-    private long responseTime;
+    private long responseTime; // nanoseconds value
     private String title;
     private int depth;
 
@@ -42,7 +42,7 @@ public class Link {
             URI uri = new URI(url);
             String host = uri.getHost();
             return host != null ? host : "";
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException _) {
             System.err.println("URL inválida ao extrair domínio: " + url);
             return "";
         }
