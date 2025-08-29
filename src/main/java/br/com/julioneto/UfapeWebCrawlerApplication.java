@@ -43,7 +43,7 @@ public class UfapeWebCrawlerApplication {
 
 
         try {
-            String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+            String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss"));
             String filePath = String.format("grafo_salvo_%s.json", date);
 
             graphStorage.save(grafo, filePath);
