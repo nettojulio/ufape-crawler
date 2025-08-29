@@ -6,9 +6,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Representa um nó (uma página da web) no grafo.
@@ -28,7 +27,7 @@ public class Link {
     private int depth;
 
     @JsonManagedReference
-    private Set<Aresta> arestasDeSaida = new HashSet<>();
+    private Map<String, Aresta> arestasDeSaida = new ConcurrentHashMap<>();//alteração para trhead-safe
 
     public Link() {
     }
@@ -50,7 +49,9 @@ public class Link {
     }
 
     public void adicionarAresta(Aresta aresta) {
-        this.arestasDeSaida.add(aresta);
+        if (aresta != null && aresta.getDestino() != null) {
+            this.arestasDeSaida.put(aresta.getDestino().getUrl(), aresta);
+        }
     }
 
     public String getUrl() {
@@ -109,11 +110,11 @@ public class Link {
         this.depth = depth;
     }
 
-    public Set<Aresta> getArestasDeSaida() {
+    public Map<String,Aresta> getArestasDeSaida() {
         return arestasDeSaida;
     }
 
-    public void setArestasDeSaida(Set<Aresta> arestasDeSaida) {
+    public void setArestasDeSaida(Map<String, Aresta> arestasDeSaida) {
         this.arestasDeSaida = arestasDeSaida;
     }
 
