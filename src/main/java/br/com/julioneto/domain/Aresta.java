@@ -1,6 +1,7 @@
 package br.com.julioneto.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Objects;
 
@@ -14,6 +15,7 @@ import java.util.Objects;
 public class Aresta {
     @JsonBackReference
     private Link origem;
+    @JsonIgnore
     private Link destino;
     private String tipo;
 
