@@ -1,12 +1,22 @@
-package br.com.julioneto.models;
+package br.com.julioneto.domain;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Representa um nó (uma página da web) no grafo.
+ *
+ * @author Julio Neto
+ * @version 0.0.1
+ * @since 0.0.1
+ */
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "url")
 public class Link {
     private String url;
     private String domain;
@@ -14,16 +24,36 @@ public class Link {
     private String contentType;
     private long responseTime;
     private String title;
-    private Set<Aresta> arestasDeSaida;
     private int depth;
+
+    @JsonManagedReference
+    private Map<String, Aresta> arestasDeSaida = new ConcurrentHashMap<>();//alteração para trhead-safe
+
+    public Link() {
+    }
 
     public Link(String url) {
         this.url = url;
         this.domain = extrairDominio(url);
-        this.arestasDeSaida = new HashSet<>();
     }
 
-    // Getters e Setters
+    private String extrairDominio(String url) {
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+            return host != null ? host : "";
+        } catch (URISyntaxException e) {
+            System.err.println("URL inválida ao extrair domínio: " + url);
+            return "";
+        }
+    }
+
+    public void adicionarAresta(Aresta aresta) {
+        if (aresta != null && aresta.getDestino() != null) {
+            this.arestasDeSaida.put(aresta.getDestino().getUrl(), aresta);
+        }
+    }
+
     public String getUrl() {
         return url;
     }
@@ -72,10 +102,6 @@ public class Link {
         this.title = title;
     }
 
-    public Set<Aresta> getArestasDeSaida() {
-        return arestasDeSaida;
-    }
-
     public int getDepth() {
         return depth;
     }
@@ -84,35 +110,12 @@ public class Link {
         this.depth = depth;
     }
 
-    public void adicionarAresta(Aresta aresta) {
-        this.arestasDeSaida.add(aresta);
+    public Map<String,Aresta> getArestasDeSaida() {
+        return arestasDeSaida;
     }
 
-    //metodo auxiliar que retorna URL dos sublink da pagina
-    public List<String> getSublinks() {
-        return arestasDeSaida.stream().map(aresta -> aresta.getDestino().getUrl()).toList();
-    }
-
-    private String extrairDominio(String url) {
-        try {
-            URI uri = new URI(url);
-            // vai retornar uma String formatada "protocolo://dominio"
-            return uri.getScheme() + "://" + uri.getHost(); //dominio base
-        } catch (URISyntaxException error) {
-            return "";
-        }
-    }
-
-    // Métodos para manipulação de objetos
-    @Override
-    public String toString() {
-        return "Link{" +
-                "url='" + url + '\'' +
-                ", depth=" + depth +
-                ", statusCode=" + statusCode +
-                ", contentType='" + contentType + '\'' +
-                ", sublinks=" + getSublinks() +
-                '}';
+    public void setArestasDeSaida(Map<String, Aresta> arestasDeSaida) {
+        this.arestasDeSaida = arestasDeSaida;
     }
 
     @Override
@@ -126,5 +129,10 @@ public class Link {
     @Override
     public int hashCode() {
         return Objects.hash(url);
+    }
+
+    @Override
+    public String toString() {
+        return "Link{url='" + url + "', depth=" + depth + ", statusCode=" + statusCode + "}";
     }
 }
