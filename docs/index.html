@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ufape Web Crawler - Relatório</title>
+    <link rel="stylesheet" href="./assets/css/index.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Ufape Web Crawler</h1>
+        <div class="stats-container">
+            <p>Total de Links Varridos: <span id="total-links">-</span></p>
+        </div>
+        <a href="grafo.html" class="button-link">Visualizar Grafo 3D</a>
+        
+        <div class="report-section">
+            <h2>Links com Status 404 (Página não encontrada)</h2>
+            <div id="error-list-container" class="list-container">
+                <div class="loader"></div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>Links Válidos (Status 200)</h2>
+            <div id="success-list-container" class="list-container">
+                <div class="loader"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="path-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Caminho até o Link</h3>
+            <div id="path-display"></div>
+        </div>
+    </div>
+
+    <script src="./assets/js/report.js"></script>
+</body>
+</html>
