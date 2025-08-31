@@ -24,7 +24,6 @@ import java.util.List;
  */
 public class JsonGraphStorage implements GraphStorage {
     private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-    private final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     @Override
     public void save(Grafo grafo, String filePath) throws IOException {

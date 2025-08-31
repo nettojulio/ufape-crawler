@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualização do Grafo</title>
-    
+
     <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
     <script type="importmap">{
         "imports": {
@@ -16,8 +17,16 @@
     }</script>
 
     <style>
-        body { margin: 0; background-color: #000011; }
-        #graph-container { width: 100vw; height: 100vh; }
+        body {
+            margin: 0;
+            background-color: #000011;
+        }
+
+        #graph-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
         .back-button {
             position: fixed;
             top: 20px;
@@ -27,7 +36,7 @@
             font-size: 1em;
             font-weight: bold;
             color: #ffffff;
-            background-color: rgba(243, 239, 13, 0.8);
+            background-color: rgba(77, 144, 254, 0.8);
             border: 1px solid #888;
             border-radius: 5px;
             cursor: pointer;
@@ -35,13 +44,62 @@
             transition: background-color 0.3s ease;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        .back-button:hover { background-color: rgba(77, 144, 254, 1); border-color: #fff; }
+
+        .back-button:hover {
+            background-color: rgba(77, 144, 254, 1);
+            border-color: #fff;
+        }
     </style>
 </head>
+
 <body>
     <a href="index.html" class="back-button">← Voltar</a>
     <div id="graph-container"></div>
-    <script src="//cdn.jsdelivr.net/npm/@babel/standalone"></script>
-    <script type="text/babel" data-type="module" src="./script.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel" data-type="module">
+        import React from 'react';
+        import { createRoot } from 'react-dom/client';
+        import ForceGraph3D from 'react-force-graph-3d';
+        import SpriteText from 'three-spritetext';
+
+        fetch('./grafo_salvo.json')
+            .then(res => res.json())
+            .then(data => {
+
+                let maxDepth = Number.MAX_SAFE_INTEGER;
+
+                const filteredNodes = data.nodes.filter(node => node.depth <= maxDepth);
+                const validNodeIds = new Set(filteredNodes.map(node => node.id));
+
+                const filteredLinks = data.links.filter(link =>
+                    validNodeIds.has(link.source) && validNodeIds.has(link.target)
+                );
+
+                const filteredGraphData = {
+                    nodes: filteredNodes,
+                    links: filteredLinks
+                };
+
+                const container = document.getElementById('graph-container');
+                const root = createRoot(container);
+                root.render(
+                    <ForceGraph3D
+                        graphData={filteredGraphData}
+                        nodeAutoColorBy="statusCode"
+                        nodeLabel={node => `URL: ${node.id}\nDepth: ${node.depth}\nStatus: ${node.statusCode}`}
+                        nodeThreeObjectExtend={true}
+                        linkDirectionalParticles={1}
+                        linkDirectionalParticleSpeed={0.01}
+                    />
+                );
+            })
+            .catch(error => {
+                console.error("Erro ao carregar o arquivo JSON:", error);
+                document.getElementById('graph-container').innerHTML = '<h2 style="color: red; text-align: center;">Falha ao carregar dados do grafo.</h2>';
+            });
+    </script>
 </body>
+
 </html>
