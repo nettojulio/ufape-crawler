@@ -1,20 +1,20 @@
 package br.com.julioneto.service;
 
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 import br.com.julioneto.contract.GraphStorage;
 import br.com.julioneto.domain.Grafo;
 import br.com.julioneto.domain.Link;
 import br.com.julioneto.dto.GraphLink;
 import br.com.julioneto.dto.GraphNode;
 import br.com.julioneto.dto.VisualGraph;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Implementação do GraphStorage que salva o grafo em um arquivo JSON.
