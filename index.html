@@ -1,38 +1,328 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualizador de Grafo 3D</title>
-  <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      width: 100vw;
-      height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ufape Web Crawler - Relatório</title>
+    <style>
+        :root {
+            --primary-color: #4d90fe;
+            --background-color: #101018;
+            --surface-color: #1a1a2a;
+            --text-color: #f0f0f0;
+            --border-color: #333;
+            --success-color: #5dd55d;
+        }
 
-    #graph {
-      width: 100%;
-      height: 100%;
-    }
-  </style>
-  <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react",
-        "react-dom/client": "https://esm.sh/react-dom/client"
-      }
-    }
-  </script>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        h1 { font-size: 2.5em; color: var(--primary-color); margin-bottom: 30px; }
+        h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; width: 100%; }
+        h3 { color: var(--primary-color); }
+
+        .stats-container {
+            background-color: var(--surface-color);
+            padding: 20px 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+        }
+        .stats-container p { margin: 0; font-size: 1.2em; }
+        .stats-container span { font-weight: bold; font-size: 1.5em; color: var(--success-color); }
+
+        .button-link {
+            display: inline-block;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+            background-color: var(--primary-color);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 40px;
+            text-decoration: none;
+        }
+        .button-link:hover { background-color: #357ae8; }
+
+        .report-section {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 40px; /* */
+        }
+
+        .list-container {
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* */
+        .success-item {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            word-break: break-all;
+            color: #c5c5c5;
+        }
+        .success-item:last-child { border-bottom: none; }
+
+
+        .error-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .error-item span { word-break: break-all; margin-right: 15px; }
+        .error-item:last-child { border-bottom: none; }
+
+        .view-path-btn {
+            padding: 5px 10px;
+            font-size: 0.8em;
+            background-color: #333;
+            color: var(--text-color);
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+        .view-path-btn:hover { background-color: var(--primary-color); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: var(--surface-color);
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #path-display {
+            padding: 10px;
+            background-color: var(--background-color);
+            border-radius: 5px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        #path-display ol { padding-left: 20px; }
+        #path-display li { padding: 5px; word-break: break-all; }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-
 <body>
-  <div id="graph"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
-  <script type="text/babel" data-type="module" src="./script.js"></script>
-</body>
 
+    <div class="container">
+        <h1>Ufape Web Crawler</h1>
+        <div class="stats-container">
+            <p>Total de Links Varridos: <span id="total-links">-</span></p>
+        </div>
+        <a href="grafo.html" class="button-link">Visualizar Grafo 3D</a>
+        
+        <div class="report-section">
+            <h2>Links com Status 404 (Página não encontrada)</h2>
+            <div id="error-list-container" class="list-container">
+                <div class="loader"></div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>Links Válidos (Status 200)</h2>
+            <div id="success-list-container" class="list-container">
+                <div class="loader"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="path-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Caminho até o Link</h3>
+            <div id="path-display"></div>
+        </div>
+    </div>
+
+    <script>
+        const totalLinksSpan = document.getElementById('total-links');
+        const errorListContainer = document.getElementById('error-list-container');
+        //Seleciona o novo container
+        const successListContainer = document.getElementById('success-list-container');
+        
+        const modal = document.getElementById('path-modal');
+        const closeModalBtn = document.querySelector('.close-btn');
+        const pathDisplay = document.getElementById('path-display');
+        let graphData = null;
+
+        function findPath(startId, endId, graph) {
+            const rootNode = graph.nodes.find(n => n.depth === 1);
+            if (!rootNode) return null;
+            startId = rootNode.id;
+
+            if (!startId || !endId || !graph) return null;
+
+            const adj = new Map();
+            graph.links.forEach(link => {
+                if (!adj.has(link.source)) adj.set(link.source, []);
+                adj.get(link.source).push(link.target);
+            });
+
+            const queue = [startId];
+            const visited = new Set([startId]);
+            const predecessor = new Map();
+
+            while (queue.length > 0) {
+                const currentNodeId = queue.shift();
+                if (currentNodeId === endId) {
+                    const path = [];
+                    let step = endId;
+                    while (step) {
+                        path.push(step);
+                        step = predecessor.get(step);
+                    }
+                    return path.reverse();
+                }
+                const neighbors = adj.get(currentNodeId) || [];
+                for (const neighborId of neighbors) {
+                    if (!visited.has(neighborId)) {
+                        visited.add(neighborId);
+                        predecessor.set(neighborId, currentNodeId);
+                        queue.push(neighborId);
+                    }
+                }
+            }
+            return null;
+        }
+        
+        closeModalBtn.onclick = () => modal.style.display = 'none';
+        window.onclick = (event) => {
+            if (event.target == modal) modal.style.display = 'none';
+        };
+
+        errorListContainer.addEventListener('click', (event) => {
+            if (event.target.classList.contains('view-path-btn')) {
+                const targetUrl = event.target.dataset.targetUrl;
+                const path = findPath(null, targetUrl, graphData);
+                
+                pathDisplay.innerHTML = '';
+                if (path) {
+                    const listElement = document.createElement('ol');
+                    path.forEach(url => {
+                        const stepElement = document.createElement('li');
+                        stepElement.textContent = url;
+                        listElement.appendChild(stepElement);
+                    });
+                    pathDisplay.appendChild(listElement);
+                } else {
+                    pathDisplay.textContent = 'O caminho não pôde ser determinado (o link pode ter sido originado de um redirecionamento ou de uma página externa não rastreada).';
+                }
+                modal.style.display = 'flex';
+            }
+        });
+
+        fetch('./grafo_salvo.json')
+            .then(res => res.json())
+            .then(data => {
+                graphData = data;
+                
+                const totalLinks = data.nodes.length;
+                const brokenLinks = data.nodes.filter(node => node.statusCode === 404);
+                //Filtra os links com status 200
+                const successLinks = data.nodes.filter(node => node.statusCode === 200);
+
+                totalLinksSpan.textContent = totalLinks;
+                
+                //Popula a lista de links quebrados
+                errorListContainer.innerHTML = '';
+                if (brokenLinks.length > 0) {
+                    brokenLinks.forEach(link => {
+                        const itemContainer = document.createElement('div');
+                        itemContainer.className = 'error-item';
+                        
+                        const urlSpan = document.createElement('span');
+                        urlSpan.textContent = link.id;
+                        
+                        const pathButton = document.createElement('button');
+                        pathButton.className = 'view-path-btn';
+                        pathButton.textContent = 'Ver Caminho';
+                        pathButton.dataset.targetUrl = link.id;
+                        
+                        itemContainer.appendChild(urlSpan);
+                        itemContainer.appendChild(pathButton);
+                        errorListContainer.appendChild(itemContainer);
+                    });
+                } else {
+                    errorListContainer.innerHTML = '<p>Nenhum link com status 404 foi encontrado.</p>';
+                }
+
+                //Popula a lista de links válidos
+                successListContainer.innerHTML = '';
+                if (successLinks.length > 0) {
+                    successLinks.forEach(link => {
+                        const successElement = document.createElement('div');
+                        successElement.className = 'success-item';
+                        successElement.textContent = link.id;
+                        successListContainer.appendChild(successElement);
+                    });
+                } else {
+                    successListContainer.innerHTML = '<p>Nenhum link com status 200 foi encontrado.</p>';
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao carregar o arquivo JSON:", error);
+                totalLinksSpan.textContent = "Erro";
+                const errorMessage = '<p>Não foi possível carregar o arquivo <strong>grafo_salvo.json</strong>.</p>';
+                errorListContainer.innerHTML = errorMessage;
+                successListContainer.innerHTML = errorMessage;
+            });
+    </script>
+</body>
 </html>

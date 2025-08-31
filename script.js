@@ -1,11 +1,12 @@
-import ForceGraph3D from 'https://esm.sh/react-force-graph-3d?external=react';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import SpriteText from "https://esm.sh/three-spritetext";
+import ForceGraph3D from 'react-force-graph-3d';
+import SpriteText from 'three-spritetext';
 
 fetch('./grafo_salvo.json')
     .then(res => res.json())
     .then(originalData => {
+
         let maxDepth = Number.MAX_SAFE_INTEGER;
 
         const filteredNodes = originalData.nodes.filter(node => node.depth <= maxDepth);
@@ -20,14 +21,11 @@ fetch('./grafo_salvo.json')
             links: filteredLinks
         };
 
-        const container = document.getElementById('graph');
-        const root = createRoot(container);
-
-        root.render(
+        createRoot(document.getElementById('graph-container')).render(
             <ForceGraph3D
                 graphData={filteredGraphData}
                 nodeAutoColorBy="statusCode"
-                nodeLabel={node => `<b>${node.id}</b>: ${node.depth} | ${node.statusCode}`}
+                nodeLabel={node => `<div><b>URL:</b> ${node.id}<br><b>Depth:</b> ${node.depth}<br><b>Status:</b> ${node.statusCode}</div>`}
                 nodeThreeObjectExtend={true}
                 linkDirectionalParticles={1}
                 linkDirectionalParticleSpeed={0.01}
@@ -35,6 +33,6 @@ fetch('./grafo_salvo.json')
         );
     })
     .catch(error => {
-        console.error("Erro ao carregar ou processar o arquivo JSON:", error);
-        document.getElementById('graph').textContent = 'Falha ao carregar os dados do grafo.';
+        console.error("Erro ao carregar o arquivo JSON:", error);
+        document.getElementById('graph-container').innerHTML = '<h2 style="color: red; text-align: center;">Falha ao carregar dados do grafo.</h2>';
     });
