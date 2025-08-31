@@ -9,12 +9,10 @@ import br.com.julioneto.dto.VisualGraph;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Implementação do GraphStorage que salva o grafo em um arquivo JSON.
@@ -31,9 +29,7 @@ public class JsonGraphStorage implements GraphStorage {
     public void save(Grafo grafo, String filePath) throws IOException {
         try {
             //converte os links do grafo para a lista de nodes
-            List<GraphNode> nodes = grafo.getLinks().values().stream()
-                            .map(link -> new GraphNode(link.getUrl(), link.getDepth(), link.getStatusCode()))
-                    .collect(Collectors.toList());
+            List<GraphNode> nodes = grafo.getLinks().values().stream().map(GraphNode::new).toList();
 
             //converte as arestas do grafo para a lista de links
             List<GraphLink> links = new ArrayList<>();

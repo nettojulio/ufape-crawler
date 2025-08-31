@@ -1,37 +1,51 @@
 package br.com.julioneto.dto;
 
-public class GraphNode {
-    private String id;
-    private int depth;
-    private int statusCode;
+import br.com.julioneto.domain.Link;
 
-    public GraphNode(String id, int depth, int statusCode){
-        this.id = id;
-        this.depth = depth;
-        this.statusCode = statusCode;
+public class GraphNode {
+    private final String id;
+    private final int depth;
+    private final int statusCode;
+    private final String contentType;
+    private final long elapsedTime;
+    private final String title;
+    private final String domain;
+
+    public GraphNode(Link link){
+        this.id = link.getUrl();
+        this.depth = link.getDepth();
+        this.statusCode = link.getStatusCode();
+        this.elapsedTime = link.getResponseTime();
+        this.contentType = link.getContentType();
+        this.title = link.getTitle();
+        this.domain = link.getDomain();
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public int getDepth() {
         return depth;
-    }
-
-    public void setDepth(int depth) {
-        this.depth = depth;
     }
 
     public int getStatusCode() {
         return statusCode;
     }
 
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
+    public long getElapsedTime() {
+        return elapsedTime;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDomain() {
+        return domain;
     }
 }
