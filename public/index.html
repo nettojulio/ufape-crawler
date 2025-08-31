@@ -79,7 +79,7 @@
             padding: 8px;
             border-bottom: 1px solid var(--border-color);
             word-break: break-all;
-            color: #c5c5c5; /* Cor um pouco mais suave para não poluir a tela */
+            color: #c5c5c5;
         }
         .success-item:last-child { border-bottom: none; }
 
@@ -194,7 +194,7 @@
     <script>
         const totalLinksSpan = document.getElementById('total-links');
         const errorListContainer = document.getElementById('error-list-container');
-        // NOVO: Seleciona o novo container
+        //Seleciona o novo container
         const successListContainer = document.getElementById('success-list-container');
         
         const modal = document.getElementById('path-modal');
@@ -275,12 +275,12 @@
                 
                 const totalLinks = data.nodes.length;
                 const brokenLinks = data.nodes.filter(node => node.statusCode === 404);
-                // NOVO: Filtra os links com status 200
+                //Filtra os links com status 200
                 const successLinks = data.nodes.filter(node => node.statusCode === 200);
 
                 totalLinksSpan.textContent = totalLinks;
                 
-                // Popula a lista de links quebrados
+                //Popula a lista de links quebrados
                 errorListContainer.innerHTML = '';
                 if (brokenLinks.length > 0) {
                     brokenLinks.forEach(link => {
@@ -303,7 +303,7 @@
                     errorListContainer.innerHTML = '<p>Nenhum link com status 404 foi encontrado.</p>';
                 }
 
-                // NOVO: Popula a lista de links válidos
+                //Popula a lista de links válidos
                 successListContainer.innerHTML = '';
                 if (successLinks.length > 0) {
                     successLinks.forEach(link => {
@@ -319,7 +319,7 @@
             .catch(error => {
                 console.error("Erro ao carregar o arquivo JSON:", error);
                 totalLinksSpan.textContent = "Erro";
-                const errorMessage = '<p>Não foi possível carregar o arquivo <strong>grafo_salvo.json</strong>. Verifique se o arquivo existe na pasta public.</p>';
+                const errorMessage = '<p>Não foi possível carregar o arquivo <strong>grafo_salvo.json</strong>.</p>';
                 errorListContainer.innerHTML = errorMessage;
                 successListContainer.innerHTML = errorMessage;
             });
