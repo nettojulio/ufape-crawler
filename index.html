@@ -10,45 +10,29 @@
     body {
       margin: 0;
       overflow: hidden;
-      width: 0;
-      height: 0;
+      width: 100vw;
+      height: 100vh;
     }
+
     #graph {
-      width: 0;
-      height: 0;
+      width: 100%;
+      height: 100%;
     }
   </style>
-
-  <script type="importmap">{ "imports": {
-      "react": "https://esm.sh/react",
-      "react-dom": "https://esm.sh/react-dom/client"
-    }}
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react",
+        "react-dom/client": "https://esm.sh/react-dom/client"
+      }
+    }
   </script>
 </head>
 
 <body>
   <div id="graph"></div>
-
-  <script src="//cdn.jsdelivr.net/npm/@babel/standalone"></script>
-  <script type="text/jsx" data-type="module">
-      import ForceGraph3D from 'https://esm.sh/react-force-graph-3d?external=react';
-      import React from 'react';
-      import { createRoot } from 'react-dom';
-      import SpriteText from "https://esm.sh/three-spritetext";
-  
-      fetch('./grafo_salvo.json').then(res => res.json()).then(data => {
-        createRoot(document.getElementById('graph')).render(
-          <ForceGraph3D
-            graphData={data}
-            nodeAutoColorBy="statusCode"
-            nodeLabel={node => <div><b>{node.id}</b>: {node.depth} | {node.statusCode}</div>}
-            nodeThreeObjectExtend={true}
-            linkDirectionalParticles={1}
-            linkDirectionalParticleSpeed={0.01}
-          />
-        );
-      });
-    </script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel" data-type="module" src="./script.js"></script>
 </body>
 
 </html>

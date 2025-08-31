@@ -128,11 +128,14 @@ public class BfsWebCrawler implements WebCrawler {
 
             if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
                 for (String foundUrl : response.getLinks().getAvailable()) {
-                    if (shouldVisit(foundUrl, sequentialVisitedUrls)) {
-                        // TODO review approach
-                        sequentialVisitedUrls.add(foundUrl);
+                    String normalizedUrl = normalizeUrl(foundUrl); // NORMALIZA A URL AQUI
+                    if (shouldVisit(normalizedUrl, sequentialVisitedUrls)) {
 
-                        Link destinationLink = new Link(foundUrl);
+                        // TODO review approach
+                        sequentialVisitedUrls.add(normalizedUrl);
+
+                        //Link destinationLink = new Link(foundUrl);
+                        Link destinationLink = new Link(normalizedUrl);//usa a url normalizada para criar um novo link
                         destinationLink.setDepth(currentLink.getDepth() + 1);
 
                         grafo.adicionarLink(destinationLink);
@@ -158,8 +161,9 @@ public class BfsWebCrawler implements WebCrawler {
 
             if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
                 for (String foundUrl : response.getLinks().getAvailable()) {
-                    if (shouldVisit(foundUrl, visitedUrls) && visitedUrls.add(foundUrl)) {
-                        Link destinationLink = new Link(foundUrl);
+                    String normalizedUrl = normalizeUrl(foundUrl); // NORMALIZA A URL AQUI
+                    if (shouldVisit(foundUrl, visitedUrls) && visitedUrls.add(normalizedUrl)) {
+                        Link destinationLink = new Link(foundUrl);//usa a url normalizada
                         destinationLink.setDepth(currentLink.getDepth() + 1);
 
                         grafo.adicionarLink(destinationLink);
@@ -188,6 +192,17 @@ public class BfsWebCrawler implements WebCrawler {
         } catch (URISyntaxException _) {
             System.err.println("URL inválida encontrada durante verificação: " + url);
             return false;
+        }
+    }
+
+    private String normalizeUrl(String url) {
+        try{
+            URI uri = new  URI(url);
+            // cria url sem fragmento
+            return new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), uri.getQuery(), null).toString();
+        }catch (URISyntaxException e) {
+            System.err.println("Erro ao normalizar a URL: " + url);
+            return url;
         }
     }
 
