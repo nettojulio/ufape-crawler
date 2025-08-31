@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ufape Web Crawler</title>
+    <title>Ufape Web Crawler - Relatório</title>
     <style>
         :root {
             --primary-color: #4d90fe;
@@ -26,11 +26,10 @@
             flex-direction: column;
             align-items: center;
             padding: 40px 20px;
-            min-height: 100vh;
         }
 
         h1 { font-size: 2.5em; color: var(--primary-color); margin-bottom: 30px; }
-        h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; }
+        h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; width: 100%; }
         h3 { color: var(--primary-color); }
 
         .stats-container {
@@ -59,7 +58,11 @@
         }
         .button-link:hover { background-color: #357ae8; }
 
-        .error-section { width: 100%; max-width: 800px; }
+        .report-section {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 40px; /* */
+        }
 
         .list-container {
             background-color: var(--surface-color);
@@ -70,6 +73,16 @@
             overflow-y: auto;
             border: 1px solid var(--border-color);
         }
+        
+        /* */
+        .success-item {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            word-break: break-all;
+            color: #c5c5c5; /* Cor um pouco mais suave para não poluir a tela */
+        }
+        .success-item:last-child { border-bottom: none; }
+
 
         .error-item {
             display: flex;
@@ -148,15 +161,23 @@
 </head>
 <body>
 
-    <div id="report-view" class="container">
+    <div class="container">
         <h1>Ufape Web Crawler</h1>
         <div class="stats-container">
             <p>Total de Links Varridos: <span id="total-links">-</span></p>
         </div>
         <a href="grafo.html" class="button-link">Visualizar Grafo 3D</a>
-        <div class="error-section">
+        
+        <div class="report-section">
             <h2>Links com Status 404 (Página não encontrada)</h2>
             <div id="error-list-container" class="list-container">
+                <div class="loader"></div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>Links Válidos (Status 200)</h2>
+            <div id="success-list-container" class="list-container">
                 <div class="loader"></div>
             </div>
         </div>
@@ -173,6 +194,9 @@
     <script>
         const totalLinksSpan = document.getElementById('total-links');
         const errorListContainer = document.getElementById('error-list-container');
+        // NOVO: Seleciona o novo container
+        const successListContainer = document.getElementById('success-list-container');
+        
         const modal = document.getElementById('path-modal');
         const closeModalBtn = document.querySelector('.close-btn');
         const pathDisplay = document.getElementById('path-display');
@@ -251,10 +275,13 @@
                 
                 const totalLinks = data.nodes.length;
                 const brokenLinks = data.nodes.filter(node => node.statusCode === 404);
+                // NOVO: Filtra os links com status 200
+                const successLinks = data.nodes.filter(node => node.statusCode === 200);
 
                 totalLinksSpan.textContent = totalLinks;
-                errorListContainer.innerHTML = '';
                 
+                // Popula a lista de links quebrados
+                errorListContainer.innerHTML = '';
                 if (brokenLinks.length > 0) {
                     brokenLinks.forEach(link => {
                         const itemContainer = document.createElement('div');
@@ -265,7 +292,7 @@
                         
                         const pathButton = document.createElement('button');
                         pathButton.className = 'view-path-btn';
-                        pathButton.textContent = 'Exibir fluxo';
+                        pathButton.textContent = 'Ver Caminho';
                         pathButton.dataset.targetUrl = link.id;
                         
                         itemContainer.appendChild(urlSpan);
@@ -275,11 +302,26 @@
                 } else {
                     errorListContainer.innerHTML = '<p>Nenhum link com status 404 foi encontrado.</p>';
                 }
+
+                // NOVO: Popula a lista de links válidos
+                successListContainer.innerHTML = '';
+                if (successLinks.length > 0) {
+                    successLinks.forEach(link => {
+                        const successElement = document.createElement('div');
+                        successElement.className = 'success-item';
+                        successElement.textContent = link.id;
+                        successListContainer.appendChild(successElement);
+                    });
+                } else {
+                    successListContainer.innerHTML = '<p>Nenhum link com status 200 foi encontrado.</p>';
+                }
             })
             .catch(error => {
                 console.error("Erro ao carregar o arquivo JSON:", error);
                 totalLinksSpan.textContent = "Erro";
-                errorListContainer.innerHTML = '<p>Não foi possível carregar o arquivo <strong>grafo_salvo.json</strong></p>';
+                const errorMessage = '<p>Não foi possível carregar o arquivo <strong>grafo_salvo.json</strong>. Verifique se o arquivo existe na pasta public.</p>';
+                errorListContainer.innerHTML = errorMessage;
+                successListContainer.innerHTML = errorMessage;
             });
     </script>
 </body>
