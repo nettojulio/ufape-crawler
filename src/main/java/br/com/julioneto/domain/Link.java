@@ -1,5 +1,6 @@
 package br.com.julioneto.domain;
 
+import br.com.julioneto.dto.CrawlResponse;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -111,12 +112,19 @@ public class Link {
         this.depth = depth;
     }
 
-    public Map<String,Aresta> getArestasDeSaida() {
+    public Map<String, Aresta> getArestasDeSaida() {
         return arestasDeSaida;
     }
 
     public void setArestasDeSaida(Map<String, Aresta> arestasDeSaida) {
         this.arestasDeSaida = arestasDeSaida;
+    }
+
+    public void updateLinkData(CrawlResponse response) {
+        this.setStatusCode(response.getStatusCode());
+        this.setTitle(response.getTitle());
+        this.setContentType(response.getContentType());
+        this.setResponseTime(response.getElapsedTime());
     }
 
     @Override

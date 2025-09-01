@@ -124,7 +124,7 @@ public class BfsWebCrawler implements WebCrawler {
         }
         try {
             CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
-            updateLinkData(currentLink, response);
+            currentLink.updateLinkData(response);
 
             if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
                 for (String foundUrl : response.getLinks().getAvailable()) {
@@ -157,7 +157,7 @@ public class BfsWebCrawler implements WebCrawler {
         }
         try {
             CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
-            updateLinkData(currentLink, response);
+            currentLink.updateLinkData(response);
 
             if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
                 for (String foundUrl : response.getLinks().getAvailable()) {
@@ -182,13 +182,21 @@ public class BfsWebCrawler implements WebCrawler {
     }
 
     private boolean shouldVisit(String url, Set<String> visited) {
-        if (url == null || url.isBlank() || !url.startsWith("http") || visited.contains(url)) {
-            return false;
-        }
-
         try {
-            String foundHost = new URI(url).getHost();
-            return foundHost.contains(initialHost);
+            if (visited.contains(url)) {
+                return false;
+            }
+            URI uri = new URI(url);
+            String newScheme = switch (uri.getScheme()) {
+                case "http" -> "https";
+                case "https" -> "http";
+                default -> uri.getScheme();
+            };
+            String altUrl = new URI(newScheme, uri.getAuthority(), uri.getPath(), uri.getQuery(), null).toString();
+            if (visited.contains(altUrl)) {
+                return false;
+            }
+            return uri.getHost().contains(initialHost);
         } catch (URISyntaxException _) {
             System.err.println("URL inválida encontrada durante verificação: " + url);
             return false;
@@ -196,21 +204,13 @@ public class BfsWebCrawler implements WebCrawler {
     }
 
     private String normalizeUrl(String url) {
-        try{
-            URI uri = new  URI(url);
-            // cria url sem fragmento
+        try {
+            URI uri = new URI(url);
             return new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), uri.getQuery(), null).toString();
-        }catch (URISyntaxException e) {
+        } catch (URISyntaxException _) {
             System.err.println("Erro ao normalizar a URL: " + url);
             return url;
         }
-    }
-
-    private void updateLinkData(Link link, CrawlResponse response) {
-        link.setStatusCode(response.getStatusCode());
-        link.setTitle(response.getTitle());
-        link.setContentType(response.getContentType());
-        link.setResponseTime(response.getElapsedTime());
     }
 
     private void handleProcessingError(Link link, Exception e) {

@@ -4,7 +4,7 @@ public class GraphLink {
     private String source;
     private String target;
 
-    public GraphLink (String source, String target){
+    public GraphLink(String source, String target) {
         this.source = source;
         this.target = target;
     }

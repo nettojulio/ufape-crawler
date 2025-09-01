@@ -11,7 +11,7 @@ public class GraphNode {
     private final String title;
     private final String domain;
 
-    public GraphNode(Link link){
+    public GraphNode(Link link) {
         this.id = link.getUrl();
         this.depth = link.getDepth();
         this.statusCode = link.getStatusCode();

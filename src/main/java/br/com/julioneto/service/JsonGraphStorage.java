@@ -33,7 +33,7 @@ public class JsonGraphStorage implements GraphStorage {
 
             //converte as arestas do grafo para a lista de links
             List<GraphLink> links = new ArrayList<>();
-            for(Link linkOrigem : grafo.getLinks().values()){
+            for (Link linkOrigem : grafo.getLinks().values()) {
                 if (linkOrigem.getArestasDeSaida() != null) {
                     for (String urlDestino : linkOrigem.getArestasDeSaida().keySet()) {
                         links.add(new GraphLink(linkOrigem.getUrl(), urlDestino));
