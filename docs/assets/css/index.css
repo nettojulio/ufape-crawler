@@ -25,6 +25,13 @@ h1 { font-size: 2.5em; color: var(--primary-color); margin-bottom: 30px; }
 h2 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; width: 100%; }
 h3 { color: var(--primary-color); }
 
+h2 .count {
+    color: #aaa;
+    font-size: 0.8em;
+    font-weight: normal;
+    margin-left: 10px;
+}
+
 .stats-container {
     background-color: var(--surface-color);
     padding: 20px 30px;
@@ -54,7 +61,7 @@ h3 { color: var(--primary-color); }
 .report-section {
     width: 100%;
     max-width: 800px;
-    margin-bottom: 40px; /* */
+    margin-bottom: 40px;
 }
 
 .list-container {
@@ -67,15 +74,20 @@ h3 { color: var(--primary-color); }
     border: 1px solid var(--border-color);
 }
 
-/* */
+/* NOVO: Estilos atualizados para .success-item */
 .success-item {
-    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
     border-bottom: 1px solid var(--border-color);
+}
+.success-item span {
     word-break: break-all;
+    margin-right: 15px;
     color: #c5c5c5;
 }
 .success-item:last-child { border-bottom: none; }
-
 
 .error-item {
     display: flex;
