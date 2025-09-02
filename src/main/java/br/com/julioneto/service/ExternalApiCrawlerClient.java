@@ -42,12 +42,12 @@ public class ExternalApiCrawlerClient implements CrawlerClient {
         CrawlRequest requestPayload = new CrawlRequest(
                 url,
                 CrawlerConfig.API_TIMEOUT_SECONDS,
-                false,
-                CrawlerConfig.ALLOWED_DOMAINS,
-                true,
-                false,
-                true,
-                3
+                CrawlerConfig.API_REMOVE_FRAGMENTS,
+                CrawlerConfig.API_ALLOWED_DOMAINS,
+                CrawlerConfig.API_COLLECT_SUBDOMAINS,
+                CrawlerConfig.API_LOWER_CASE_URL,
+                CrawlerConfig.API_CAN_RETRY,
+                CrawlerConfig.API_MAX_ATTEMPTS
         );
         String requestBody = objectMapper.writeValueAsString(requestPayload);
 

@@ -1,38 +1,101 @@
-<!DOCTYPE html>
 <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ufape Web Crawler - Relatório</title>
-        <link rel="stylesheet" href="./assets/css/index.css">
-    </head>
-    <body>
-        <div class="container">
-            <h1>Ufape Web Crawler</h1>
-            <div class="stats-container">
-                <p>Total de Links Varridos: <span id="total-links">-</span></p>
-            </div>
-            <a href="grafo.html" class="button-link">Visualizar Grafo 3D</a>
-            <div class="report-section">
-                <h2>Links com Status 404<span id="broken-links-count" class="count"></span></h2>
-                <div id="error-list-container" class="list-container">
-                    <div class="loader"></div>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ufape Web Crawler - Relatório</title>
+    <link rel="stylesheet" href="./assets/css/index.css">
+    <link rel="icon" href="./assets/public/icon.ico" type="image/x-icon">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Ufape Web Crawler</h1>
+        <div class="stats-container">
+            <p>Total de Links Varridos: <span id="total-links">-</span>
+            </p>
+            <p>Profundidade Máxima: <span id="max-depth">-</span>
+            </p>
+        </div>
+        <p>Atualizado em <span id="last-updated">-</span>
+        </p>
+        <a href="grafo.html" class="button-link">Visualizar Grafo 3D</a>
+        <div class="interactive-report">
+            <h2>Análise Detalhada de Links</h2>
+            <div class="filters-container">
+                <div class="filter-group filter-group-search">
+                    <label for="search-filter">Pesquisar URL</label>
+                    <input type="search" id="search-filter" placeholder="Digite parte da URL para filtrar...">
+                </div>
+                <div class="filter-group">
+                    <label for="status-filter">Status Code</label>
+                    <select id="status-filter"></select>
+                </div>
+                <div class="filter-group">
+                    <label for="domain-filter">Domínio</label>
+                    <select id="domain-filter"></select>
+                </div>
+                <div class="filter-group filter-group-content-type-select">
+                    <label for="content-type-filter">Content Type</label>
+                    <select id="content-type-filter"></select>
+                </div>
+                <div class="filter-group">
+                    <label for="depth-filter">Profundidade (até)</label>
+                    <input type="number" id="depth-filter" placeholder="Ex: 5" min="0">
+                </div>
+                <div class="filter-group">
+                    <label for="elapsed-time-filter">Tempo (até ns)</label>
+                    <input type="number" id="elapsed-time-filter" placeholder="Ex: 500" min="0">
                 </div>
             </div>
-            <div class="report-section">
-                <h2>Links Válidos (Status 200) <span id="success-links-count" class="count"></span></h2>
-                <div id="success-list-container" class="list-container">
-                    <div class="loader"></div>
+            <p id="results-count" class="results-summary"></p>
+            <div class="table-container">
+                <table id="links-table">
+                    <thead>
+                        <tr>
+                            <th class="col-url">URL</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-depth sortable" data-sort-key="depth">Profundidade</th>
+                            <th class="col-content-type">Content Type</th>
+                            <th class="col-time sortable" data-sort-key="elapsedTime">Tempo (ns)</th>
+                            <th class="col-domain">Domínio</th>
+                            <th class="col-actions">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7">
+                                <div class="loader"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="pagination-controls" class="pagination-controls">
+                <div class="page-size-control">
+                    <label for="page-size-select">Itens por página:</label>
+                    <select id="page-size-select">
+                        <option value="10">10</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <div class="page-nav-control">
+                    <button id="prev-page-btn" class="nav-btn">Anterior</button>
+                    <span id="page-info"></span>
+                    <button id="next-page-btn" class="nav-btn">Próxima</button>
                 </div>
             </div>
         </div>
-        <div id="path-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <h3>Caminho até o Link</h3>
-                <div id="path-display"></div>
-            </div>
+    </div>
+    <div id="path-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">×</span>
+            <h3>Caminho até o Link</h3>
+            <div id="path-display"></div>
         </div>
-        <script src="./assets/js/report.js"></script>
-    </body>
+    </div>
+    <script type="module" src="./assets/js/report.js"></script>
+</body>
+
 </html>

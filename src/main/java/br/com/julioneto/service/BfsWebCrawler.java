@@ -118,45 +118,74 @@ public class BfsWebCrawler implements WebCrawler {
     }
 
     private void processLinkSequentially(Link currentLink) {
-        System.out.println("[SEQ] Processando (depth: " + currentLink.getDepth() + ") " + currentLink.getUrl());
-        if (currentLink.getDepth() > Grafo.getMaxDepth()) {
-            Grafo.setMaxDepth(currentLink.getDepth());
-        }
-        try {
-            CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
-            currentLink.updateLinkData(response);
+        final int MAX_ATTEMPTS = 10;
+        breakItAll:
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            System.out.println("[SEQ] Processando (depth: " + currentLink.getDepth() + ") " + currentLink.getUrl() + " | Tentativa " + attempt + " de " + MAX_ATTEMPTS);
 
-            if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
-                for (String foundUrl : response.getLinks().getAvailable()) {
-                    String normalizedUrl = normalizeUrl(foundUrl); // NORMALIZA A URL AQUI
-                    if (shouldVisit(normalizedUrl, sequentialVisitedUrls)) {
+            this.increaseMaxDepth(currentLink);
 
-                        // TODO review approach
-                        sequentialVisitedUrls.add(normalizedUrl);
+            try {
+                CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
+                currentLink.updateLinkData(response);
 
-                        //Link destinationLink = new Link(foundUrl);
-                        Link destinationLink = new Link(normalizedUrl);//usa a url normalizada para criar um novo link
-                        destinationLink.setDepth(currentLink.getDepth() + 1);
+                if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
+                    for (String foundUrl : response.getLinks().getAvailable()) {
+                        String normalizedUrl = normalizeUrl(foundUrl); // NORMALIZA A URL AQUI
+                        if (shouldVisit(normalizedUrl, sequentialVisitedUrls)) {
 
-                        grafo.adicionarLink(destinationLink);
-                        grafo.adicionarAresta(currentLink.getUrl(), destinationLink.getUrl(), "dofollow");
+                            sequentialVisitedUrls.add(normalizedUrl);
 
-                        sequentialQueue.add(destinationLink);
+                            Link destinationLink = new Link(normalizedUrl);
+                            destinationLink.setDepth(currentLink.getDepth() + 1);
+
+                            grafo.adicionarLink(destinationLink);
+                            grafo.adicionarAresta(currentLink.getUrl(), destinationLink.getUrl(), "dofollow");
+
+                            sequentialQueue.add(destinationLink);
+                        }
                     }
                 }
+                break breakItAll;
+            } catch (Exception error) {
+                handleProcessingError(currentLink, error);
             }
-        } catch (Exception error) {
-            handleProcessingError(currentLink, error);
         }
     }
 
     private void processLinkConcurrently(Link currentLink, ExecutorService executor, Set<String> visitedUrls, AtomicInteger activeTasks) {
-        System.out.println("[CON] Processando (depth: " + currentLink.getDepth() + ") " + currentLink.getUrl());
-        if (currentLink.getDepth() > Grafo.getMaxDepth()) {
-            Grafo.setMaxDepth(currentLink.getDepth());
+        final int MAX_ATTEMPTS = 7;
+        final long INITIAL_BACKOFF_MS = 10_000;
+
+        this.increaseMaxDepth(currentLink);
+
+        CrawlResponse response = null;
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                response = crawlerClient.fetchPageInfo(currentLink.getUrl());
+                System.out.println("[CON] Processando (depth: " + currentLink.getDepth() + ") " + currentLink.getUrl() + " | Tentativa " + attempt + " de " + MAX_ATTEMPTS);
+
+                boolean needSleep = response.getStatusCode() == 500 || response.getStatusCode() == 518 || response.getStatusCode() == 404;
+
+                if (response.getStatusCode() < 400 || attempt == MAX_ATTEMPTS || !needSleep) {
+                    break;
+                }
+
+                Thread.sleep(attempt >= MAX_ATTEMPTS - 2 ? 20_000 : INITIAL_BACKOFF_MS);
+            } catch (Exception _) {
+                if (attempt < MAX_ATTEMPTS) {
+                    try {
+                        long backoffTime = INITIAL_BACKOFF_MS * (long) Math.pow(2, attempt - 1);
+                        Thread.sleep(backoffTime);
+                    } catch (InterruptedException _) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
         }
+
         try {
-            CrawlResponse response = crawlerClient.fetchPageInfo(currentLink.getUrl());
             currentLink.updateLinkData(response);
 
             if (currentLink.getDepth() != CrawlerConfig.MAX_DEPTH && response.getStatusCode() == 200 && response.getLinks() != null && response.getLinks().getAvailable() != null) {
@@ -199,7 +228,7 @@ public class BfsWebCrawler implements WebCrawler {
             return uri.getHost().contains(initialHost);
         } catch (URISyntaxException _) {
             System.err.println("URL inválida encontrada durante verificação: " + url);
-            return false;
+            return true;
         }
     }
 
@@ -217,6 +246,12 @@ public class BfsWebCrawler implements WebCrawler {
         System.err.println("Erro ao processar a URL " + link.getUrl() + ": " + e.getMessage());
         if (link.getStatusCode() == 0) {
             link.setStatusCode(500);
+        }
+    }
+
+    private void increaseMaxDepth(Link currentLink) {
+        if (currentLink.getDepth() > Grafo.getMaxDepth()) {
+            Grafo.setMaxDepth(currentLink.getDepth());
         }
     }
 }

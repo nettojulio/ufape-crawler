@@ -1,144 +1,35 @@
-const totalLinksSpan = document.getElementById('total-links');
-const errorListContainer = document.getElementById('error-list-container');
-const successListContainer = document.getElementById('success-list-container');
-
-const brokenLinksCountSpan = document.getElementById('broken-links-count');
-const successLinksCountSpan = document.getElementById('success-links-count');
-
-const modal = document.getElementById('path-modal');
-const closeModalBtn = document.querySelector('.close-btn');
-const pathDisplay = document.getElementById('path-display');
-let graphData = null;
-
-function findPath(startId, endId, graph) {
-    const rootNode = graph.nodes.find(n => n.depth === 1);
-    if (!rootNode) return null;
-    startId = rootNode.id;
-
-    if (!startId || !endId || !graph) return null;
-
-    const adj = new Map();
-    graph.links.forEach(link => {
-        if (!adj.has(link.source)) adj.set(link.source, []);
-        adj.get(link.source).push(link.target);
-    });
-
-    const queue = [startId];
-    const visited = new Set([startId]);
-    const predecessor = new Map();
-
-    while (queue.length > 0) {
-        const currentNodeId = queue.shift();
-        if (currentNodeId === endId) {
-            const path = [];
-            let step = endId;
-            while (step) {
-                path.push(step);
-                step = predecessor.get(step);
-            }
-            return path.reverse();
-        }
-        const neighbors = adj.get(currentNodeId) || [];
-        for (const neighborId of neighbors) {
-            if (!visited.has(neighborId)) {
-                visited.add(neighborId);
-                predecessor.set(neighborId, currentNodeId);
-                queue.push(neighborId);
-            }
-        }
-    }
-    return null;
+import { fetchGraphData, findPath } from './utils.js'; const searchFilter = document.getElementById('search-filter'); const lastUpdated = document.getElementById('last-updated'); const totalLinksSpan = document.getElementById('total-links'); const totalMaxDepth = document.getElementById('max-depth'); const tableBody = document.querySelector('#links-table tbody'); const tableHead = document.querySelector('#links-table thead'); const resultsCountSpan = document.getElementById('results-count'); const statusFilter = document.getElementById('status-filter'); const domainFilter = document.getElementById('domain-filter'); const contentTypeFilter = document.getElementById('content-type-filter'); const depthFilter = document.getElementById('depth-filter'); const elapsedTimeFilter = document.getElementById('elapsed-time-filter'); const modal = document.getElementById('path-modal'); const closeModalBtn = document.querySelector('.close-btn'); const pathDisplay = document.getElementById('path-display'); const pageSizeSelect = document.getElementById('page-size-select'); const prevPageBtn = document.getElementById('prev-page-btn'); const nextPageBtn = document.getElementById('next-page-btn'); const pageInfoSpan = document.getElementById('page-info'); let graphData = null; let nodesData = []; let filteredAndSortedData = []; let currentSort = { key: null, direction: 'none' }; let currentPage = 1; let itemsPerPage = parseInt(pageSizeSelect.value, 10); function debounce(func, delay) { let timeoutId; return function (...args) { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); }; }
+function applyFiltersAndSort() {
+    const searchTerm = searchFilter.value.toLowerCase().trim(); const filters = { statusCode: statusFilter.value, domain: domainFilter.value, contentType: contentTypeFilter.value, depth: depthFilter.value, elapsedTime: elapsedTimeFilter.value }; let processedData = nodesData.filter(node => { const searchMatch = !searchTerm || (node.idLowercase && node.idLowercase.includes(searchTerm)); const statusMatch = !filters.statusCode || node.statusCode == filters.statusCode; const domainMatch = !filters.domain || node.domain === filters.domain; const contentTypeMatch = !filters.contentType || node.contentType === filters.contentType; const depthMatch = !filters.depth || node.depth <= parseInt(filters.depth, 10); const elapsedTimeMatch = !filters.elapsedTime || node.elapsedTime <= parseInt(filters.elapsedTime, 10); return searchMatch && statusMatch && domainMatch && contentTypeMatch && depthMatch && elapsedTimeMatch; }); if (currentSort.key && currentSort.direction !== 'none') { processedData.sort((a, b) => { const valA = a[currentSort.key]; const valB = b[currentSort.key]; return currentSort.direction === 'asc' ? valA - valB : valB - valA; }); }
+    filteredAndSortedData = processedData; currentPage = 1; renderCurrentPage();
 }
-
-closeModalBtn.onclick = () => modal.style.display = 'none';
-window.onclick = (event) => {
-    if (event.target == modal) modal.style.display = 'none';
-};
-
-function handleViewPathClick(event) {
-    if (event.target.classList.contains('view-path-btn')) {
-        const targetUrl = event.target.dataset.targetUrl;
-        const path = findPath(null, targetUrl, graphData);
-
-        pathDisplay.innerHTML = '';
-        if (path) {
-            const listElement = document.createElement('ol');
-            path.forEach(url => {
-                const stepElement = document.createElement('li');
-                stepElement.textContent = url;
-                listElement.appendChild(stepElement);
-            });
-            pathDisplay.appendChild(listElement);
-        } else {
-            pathDisplay.textContent = 'O caminho não pôde ser determinado (o link pode ter sido originado de um redirecionamento ou de uma página externa não rastreada).';
-        }
-        modal.style.display = 'flex';
-    }
+function renderCurrentPage() { const startIndex = (currentPage - 1) * itemsPerPage; const endIndex = startIndex + itemsPerPage; const pageData = filteredAndSortedData.slice(startIndex, endIndex); renderTable(pageData); updatePaginationUI(); }
+function updatePaginationUI() { const totalItems = filteredAndSortedData.length; const totalPages = Math.ceil(totalItems / itemsPerPage) || 1; pageInfoSpan.textContent = `Página ${currentPage} de ${totalPages}`; prevPageBtn.disabled = currentPage === 1; nextPageBtn.disabled = currentPage === totalPages; const paginationControls = document.getElementById('pagination-controls'); paginationControls.style.display = totalItems > itemsPerPage ? 'flex' : 'none'; }
+function renderTable(nodesOnPage) {
+    tableBody.innerHTML = ''; resultsCountSpan.textContent = `Exibindo ${nodesOnPage.length} de ${filteredAndSortedData.length} resultados.`; if (nodesOnPage.length === 0) { tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Nenhum resultado encontrado para os filtros aplicados.</td></tr>'; return; }
+    const fragment = document.createDocumentFragment(); nodesOnPage.forEach(node => {
+        const tr = document.createElement('tr'); const statusClass = `status-code-${node.statusCode === 200 ? '200' : '404'}`; tr.innerHTML = `
+            <td class="col-url" title="${node.id}"><a class="anchor-internal" href="${node.id}" target="_blank">${node.id}</a></td>
+            <td class="${statusClass} col-status">${node.statusCode}</td>
+            <td class="col-depth">${node.depth}</td>
+            <td class="col-content-type" title="${node.contentType || 'N/A'}">${node.contentType || 'N/A'}</td>
+            <td class="col-time">${node.elapsedTime}</td>
+            <td class="col-domain" title="${node.domain}">${node.domain}</td>
+            <td class="col-actions">
+                <button class="view-path-btn" data-target-url="${node.id}">Ver Caminho</button>
+            </td>
+        `; fragment.appendChild(tr);
+    }); tableBody.appendChild(fragment);
 }
-
-errorListContainer.addEventListener('click', handleViewPathClick);
-
-successListContainer.addEventListener('click', handleViewPathClick);
-
-fetch('./assets/data/grafo_salvo.json')
-    .then(res => res.json())
-    .then(data => {
-        graphData = data;
-
-        const totalLinks = data.nodes.length;
-        const brokenLinks = data.nodes.filter(node => node.statusCode === 404);
-        const successLinks = data.nodes.filter(node => node.statusCode === 200);
-
-        totalLinksSpan.textContent = totalLinks;
-
-        brokenLinksCountSpan.textContent = `(Total de links problemáticos: ${brokenLinks.length})`;
-
-        errorListContainer.innerHTML = '';
-        if (brokenLinks.length > 0) {
-            brokenLinks.forEach(link => {
-                const itemContainer = document.createElement('div');
-                itemContainer.className = 'error-item';
-
-                const urlSpan = document.createElement('span');
-                urlSpan.textContent = link.id;
-
-                const pathButton = document.createElement('button');
-                pathButton.className = 'view-path-btn';
-                pathButton.textContent = 'Ver Caminho';
-                pathButton.dataset.targetUrl = link.id;
-
-                itemContainer.appendChild(urlSpan);
-                itemContainer.appendChild(pathButton);
-                errorListContainer.appendChild(itemContainer);
-            });
-        } else {
-            errorListContainer.innerHTML = '<p>Nenhum link com status 404 foi encontrado.</p>';
-        }
-
-        successListContainer.innerHTML = '';
-        if (successLinks.length > 0) {
-            // NOVO: Cria a lista de sucesso com o botão "Ver Caminho"
-            successLinks.forEach(link => {
-                const itemContainer = document.createElement('div');
-                itemContainer.className = 'success-item';
-                const urlSpan = document.createElement('span');
-                urlSpan.textContent = link.id;
-                const pathButton = document.createElement('button');
-                pathButton.className = 'view-path-btn';
-                pathButton.textContent = 'Ver Caminho';
-                pathButton.dataset.targetUrl = link.id;
-                itemContainer.appendChild(urlSpan);
-                itemContainer.appendChild(pathButton);
-                successListContainer.appendChild(itemContainer);
-            });
-        } else {
-            successListContainer.innerHTML = '<p>Nenhum link com status 200 foi encontrado.</p>';
-        }
-    })
-    .catch(error => {
-        console.error("Erro ao carregar o arquivo JSON:", error);
-        totalLinksSpan.textContent = "Erro";
-        const errorMessage = '<p>Não foi possível carregar o arquivo <strong>grafo_salvo.json</strong>. Verifique se o arquivo existe na pasta public.</p>';
-        errorListContainer.innerHTML = errorMessage;
-        successListContainer.innerHTML = errorMessage;
-    });
+function updateHeaderIcons() { const allSortableHeaders = tableHead.querySelectorAll('.sortable'); allSortableHeaders.forEach(th => { th.removeAttribute('data-sort'); if (th.dataset.sortKey === currentSort.key) { th.setAttribute('data-sort', currentSort.direction); } }); }
+function populateFilters() { const statusCodes = [...new Set(nodesData.map(node => node.statusCode))].sort((a, b) => a - b); const domains = [...new Set(nodesData.map(node => node.domain))].sort(); const contentTypes = [...new Set(nodesData.map(node => node.contentType))].sort(); const createOptions = (selectElement, optionsArray, defaultLabel) => { selectElement.innerHTML = `<option value="">Todos os ${defaultLabel}</option>`; optionsArray.forEach(value => { if (value) { const option = document.createElement('option'); option.value = value; option.textContent = value; selectElement.appendChild(option); } }); }; createOptions(statusFilter, statusCodes, 'Status'); createOptions(domainFilter, domains, 'Domínios'); createOptions(contentTypeFilter, contentTypes, 'Tipos'); }
+function showPathModal(targetUrl) {
+    const rootNode = graphData.nodes.find(n => n.depth === 1); if (!rootNode) { pathDisplay.textContent = 'Nó raiz não encontrado.'; modal.style.display = 'flex'; return; }
+    const path = findPath(rootNode.id, targetUrl, graphData); pathDisplay.innerHTML = ''; if (path) { const listElement = document.createElement('ol'); path.forEach(url => { const stepElement = document.createElement('li'); stepElement.textContent = url; listElement.appendChild(stepElement); }); pathDisplay.appendChild(listElement); } else { pathDisplay.textContent = 'O caminho não pôde ser determinado.'; }
+    modal.style.display = 'flex';
+}
+const debouncedFilter = debounce(applyFiltersAndSort, 300); searchFilter.addEventListener('input', debouncedFilter); depthFilter.addEventListener('input', debouncedFilter); elapsedTimeFilter.addEventListener('input', debouncedFilter);[statusFilter, domainFilter, contentTypeFilter].forEach(el => el.addEventListener('change', applyFiltersAndSort)); tableHead.addEventListener('click', (event) => {
+    const header = event.target.closest('.sortable'); if (!header) return; const sortKey = header.dataset.sortKey; if (currentSort.key === sortKey) { currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'none'; if (currentSort.direction === 'none') currentSort.key = null; } else { currentSort.key = sortKey; currentSort.direction = 'asc'; }
+    updateHeaderIcons(); applyFiltersAndSort();
+}); pageSizeSelect.addEventListener('change', (event) => { itemsPerPage = parseInt(event.target.value, 10); currentPage = 1; renderCurrentPage(); }); prevPageBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderCurrentPage(); } }); nextPageBtn.addEventListener('click', () => { const totalPages = Math.ceil(filteredAndSortedData.length / itemsPerPage); if (currentPage < totalPages) { currentPage++; renderCurrentPage(); } }); closeModalBtn.onclick = () => modal.style.display = 'none'; window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; }; document.getElementById('links-table').addEventListener('click', (event) => { if (event.target.classList.contains('view-path-btn')) { const targetUrl = event.target.dataset.targetUrl; showPathModal(targetUrl); } }); async function main() { try { graphData = await fetchGraphData(); nodesData = graphData.nodes; nodesData.forEach(node => { node.idLowercase = node.id.toLowerCase(); }); totalLinksSpan.textContent = nodesData.length; totalMaxDepth.textContent = Math.max(...nodesData.map(n => n.depth)); lastUpdated.textContent = new Date(graphData.generatedAt).toLocaleString('pt-BR'); populateFilters(); applyFiltersAndSort(); } catch (error) { console.error("Erro ao carregar os dados:", error); totalLinksSpan.textContent = "Erro"; tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red;">Não foi possível carregar os dados do relatório.</td></tr>'; } }
+main();

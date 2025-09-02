@@ -1,40 +1,12 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import ForceGraph3D from 'react-force-graph-3d';
-import SpriteText from 'three-spritetext';
-
-fetch('./assets/data/grafo_salvo.json')
-    .then(res => res.json())
-    .then(data => {
-
-        let maxDepth = Number.MAX_SAFE_INTEGER;
-
-        const filteredNodes = data.nodes.filter(node => node.depth <= maxDepth);
-        const validNodeIds = new Set(filteredNodes.map(node => node.id));
-
-        const filteredLinks = data.links.filter(link =>
-            validNodeIds.has(link.source) && validNodeIds.has(link.target)
-        );
-
-        const filteredGraphData = {
-            nodes: filteredNodes,
-            links: filteredLinks
-        };
-
-        const container = document.getElementById('graph-container');
-        const root = createRoot(container);
-        root.render(
-            <ForceGraph3D
-                graphData={filteredGraphData}
-                nodeAutoColorBy="statusCode"
-                nodeLabel={node => `URL: ${node.id}\nDepth: ${node.depth}\nStatus: ${node.statusCode}`}
-                nodeThreeObjectExtend={true}
-                linkDirectionalParticles={1}
-                linkDirectionalParticleSpeed={0.01}
-            />
-        );
-    })
-    .catch(error => {
-        console.error("Erro ao carregar o arquivo JSON:", error);
-        document.getElementById('graph-container').innerHTML = '<h2 style="color: red; text-align: center;">Falha ao carregar dados do grafo.</h2>';
-    });
+import React from 'react'; import { createRoot } from 'react-dom/client'; import ForceGraph3D from 'react-force-graph-3d'; import { fetchGraphData } from './assets/js/utils.js'; const container = document.getElementById('graph-container'); const depthInput = document.getElementById('depth-input'); let fullGraphData = null; let reactRoot = null; function debounce(func, delay) { let timeoutId; return function (...args) { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); }; }
+function renderGraph(maxDepth) {
+    if (!fullGraphData) return; const filteredNodes = fullGraphData.nodes.filter(node => node.depth <= maxDepth); const validNodeIds = new Set(filteredNodes.map(node => node.id)); const filteredLinks = fullGraphData.links.filter(link => { const sourceId = typeof link.source === 'object' && link.source !== null ? link.source.id : link.source; const targetId = typeof link.target === 'object' && link.target !== null ? link.target.id : link.target; return validNodeIds.has(sourceId) && validNodeIds.has(targetId); }); const filteredGraphData = { nodes: filteredNodes, links: filteredLinks }; if (!reactRoot) { reactRoot = createRoot(container); }
+    reactRoot.render(<ForceGraph3D
+        graphData={filteredGraphData}
+        nodeAutoColorBy="statusCode"
+        nodeLabel={node => `URL: ${node.id}\nDepth: ${node.depth}\nStatus: ${node.statusCode}`}
+        linkDirectionalParticles={1}
+        linkDirectionalParticleSpeed={0.01} />);
+}
+async function init() { try { container.innerHTML = '<h2 style="color: white; text-align: center; margin-top: 40vh;">Carregando dados do grafo...</h2>'; fullGraphData = await fetchGraphData(); const maxPossibleDepth = Math.max(...fullGraphData.nodes.map(n => n.depth)); depthInput.max = maxPossibleDepth; depthInput.value = maxPossibleDepth; renderGraph(maxPossibleDepth); depthInput.addEventListener('input', debounce((event) => { const newDepth = parseInt(event.target.value, 10); if (!isNaN(newDepth) && newDepth > 0) { renderGraph(newDepth); } else if (event.target.value === '') { renderGraph(maxPossibleDepth); } }, 1000)); } catch (error) { console.error("Erro ao carregar e renderizar o grafo:", error); container.innerHTML = '<h2 style="color: red; text-align: center;">Falha ao carregar dados do grafo.</h2>'; } }
+init();
