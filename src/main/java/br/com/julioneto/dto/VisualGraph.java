@@ -4,9 +4,9 @@ import java.sql.Timestamp;
 import java.util.List;
 
 public class VisualGraph {
+    private final Timestamp generatedAt;
     private List<GraphNode> nodes;
     private List<GraphLink> links;
-    private final Timestamp generatedAt;
 
     public VisualGraph(List<GraphNode> nodes, List<GraphLink> links) {
         this.nodes = nodes;

@@ -140,7 +140,7 @@ public class BfsWebCrawler implements WebCrawler {
                             destinationLink.setDepth(currentLink.getDepth() + 1);
 
                             grafo.adicionarLink(destinationLink);
-                            grafo.adicionarAresta(currentLink.getUrl(), destinationLink.getUrl(), "dofollow");
+                            grafo.adicionarAresta(currentLink.getUrl(), destinationLink.getUrl());
 
                             sequentialQueue.add(destinationLink);
                         }
@@ -196,7 +196,7 @@ public class BfsWebCrawler implements WebCrawler {
                         destinationLink.setDepth(currentLink.getDepth() + 1);
 
                         grafo.adicionarLink(destinationLink);
-                        grafo.adicionarAresta(currentLink.getUrl(), destinationLink.getUrl(), "dofollow");
+                        grafo.adicionarAresta(currentLink.getUrl(), destinationLink.getUrl());
 
                         activeTasks.incrementAndGet();
                         executor.submit(() -> processLinkConcurrently(destinationLink, executor, visitedUrls, activeTasks));

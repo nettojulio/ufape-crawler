@@ -37,6 +37,12 @@ public class ExternalApiCrawlerClient implements CrawlerClient {
         this.objectMapper = new ObjectMapper();
     }
 
+    public ExternalApiCrawlerClient(String baseUrl, HttpClient httpClient, ObjectMapper objectMapper) {
+        this.baseUrl = baseUrl;
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
+    }
+
     @Override
     public CrawlResponse fetchPageInfo(String url) throws IOException, InterruptedException {
         CrawlRequest requestPayload = new CrawlRequest(

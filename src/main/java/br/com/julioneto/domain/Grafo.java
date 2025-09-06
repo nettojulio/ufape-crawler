@@ -35,12 +35,12 @@ public class Grafo {
         return links.get(url);
     }
 
-    public void adicionarAresta(String urlOrigem, String urlDestino, String tipo) {
+    public void adicionarAresta(String urlOrigem, String urlDestino) {
         Link origem = getLink(urlOrigem);
         Link destino = getLink(urlDestino);
 
         if (origem != null && destino != null) {
-            Aresta aresta = new Aresta(origem, destino, tipo);
+            Aresta aresta = new Aresta(origem, destino);
             origem.adicionarAresta(aresta);
         }
     }

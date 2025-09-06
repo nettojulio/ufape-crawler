@@ -46,4 +46,36 @@ public class CrawlRequest {
         this.canRetry = canRetry;
         this.maxAttempts = maxAttempts;
     }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public boolean isRemoveFragment() {
+        return removeFragment;
+    }
+
+    public List<String> getAllowedDomains() {
+        return allowedDomains;
+    }
+
+    public boolean isCollectSubdomains() {
+        return collectSubdomains;
+    }
+
+    public boolean isLowerCaseUrls() {
+        return lowerCaseUrls;
+    }
+
+    public boolean isCanRetry() {
+        return canRetry;
+    }
+
+    public int getMaxAttempts() {
+        return maxAttempts;
+    }
 }

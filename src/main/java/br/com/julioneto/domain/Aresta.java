@@ -17,12 +17,10 @@ public class Aresta {
     private Link origem;
     @JsonIgnore
     private Link destino;
-    private String tipo;
 
-    public Aresta(Link origem, Link destino, String tipo) {
+    public Aresta(Link origem, Link destino) {
         this.origem = origem;
         this.destino = destino;
-        this.tipo = tipo;
     }
 
     public Link getOrigem() {
@@ -41,24 +39,16 @@ public class Aresta {
         this.destino = destino;
     }
 
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Aresta aresta = (Aresta) o;
-        return Objects.equals(origem, aresta.origem) && Objects.equals(destino, aresta.destino) && Objects.equals(tipo, aresta.tipo);
+        return Objects.equals(origem, aresta.origem) && Objects.equals(destino, aresta.destino);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origem, destino, tipo);
+        return Objects.hash(origem, destino);
     }
 }
